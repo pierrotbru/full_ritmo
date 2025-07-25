@@ -1304,6 +1304,7 @@ dependencies = [
  "chrono",
  "ritmo_core",
  "ritmo_errors",
+ "serde",
  "sqlx",
  "tempfile",
 ]

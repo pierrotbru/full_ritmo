@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 sqlx = { workspace = true }
+serde = { workspace = true }
 ritmo_errors = { path = "../ritmo_errors" }
 ritmo_core = { path = "../ritmo_core" }
 chrono = "0.4.41"
