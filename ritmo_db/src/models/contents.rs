@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Result, Sqlite, SqlitePool, Transaction};
+use sqlx::{FromRow, Result, SqlitePool};
 
 #[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
 pub struct Content {
@@ -75,7 +75,7 @@ impl Content {
 
     /// Inserisce un batch di contents in una singola transazione.
     pub async fn insert_batch(pool: &SqlitePool, contents: &[Content]) -> Result<()> {
-        let mut tx: Transaction<'_, Sqlite> = pool.begin().await?;
+        let mut tx = pool.begin().await?;
         for content in contents {
             sqlx::query(
                 r#"
@@ -88,7 +88,7 @@ impl Content {
             .bind(content.parent_id)
             .bind(&content.description)
             .bind(&content.content_type)
-            .execute(&mut tx)
+            .execute(&mut *tx)
             .await?;
         }
         tx.commit().await?;
@@ -97,7 +97,7 @@ impl Content {
 
     /// Aggiorna un batch di contents in una singola transazione.
     pub async fn update_batch(pool: &SqlitePool, contents: &[Content]) -> Result<()> {
-        let mut tx: Transaction<'_, Sqlite> = pool.begin().await?;
+        let mut tx = pool.begin().await?;
         for content in contents {
             sqlx::query(
                 r#"
@@ -115,7 +115,7 @@ impl Content {
             .bind(&content.description)
             .bind(&content.content_type)
             .bind(content.id)
-            .execute(&mut tx)
+            .execute(&mut *tx)
             .await?;
         }
         tx.commit().await?;
@@ -124,11 +124,11 @@ impl Content {
 
     /// Cancella un batch di contents dati i loro id.
     pub async fn delete_batch(pool: &SqlitePool, ids: &[i64]) -> Result<()> {
-        let mut tx: Transaction<'_, Sqlite> = pool.begin().await?;
+        let mut tx = pool.begin().await?;
         for id in ids {
             sqlx::query("DELETE FROM contents WHERE id = ?")
                 .bind(id)
-                .execute(&mut tx)
+                .execute(&mut *tx)
                 .await?;
         }
         tx.commit().await?;

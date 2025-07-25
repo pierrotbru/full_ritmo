@@ -164,7 +164,7 @@ impl Book {
             .bind(&book.file_hash)
             .bind(book.rating)
             .bind(&book.read_status)
-            .execute(&mut tx)
+            .execute(&mut *tx)
             .await?;
         }
         tx.commit().await?;
@@ -219,7 +219,7 @@ impl Book {
             .bind(book.rating)
             .bind(&book.read_status)
             .bind(book.id)
-            .execute(&mut tx)
+            .execute(&mut *tx)
             .await?;
         }
         tx.commit().await?;
@@ -232,7 +232,7 @@ impl Book {
         for id in ids {
             sqlx::query("DELETE FROM books WHERE id = ?")
                 .bind(id)
-                .execute(&mut tx)
+                .execute(&mut *tx)
                 .await?;
         }
         tx.commit().await?;
