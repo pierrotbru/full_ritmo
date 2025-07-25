@@ -3,8 +3,8 @@
 // ritmo_errors/src/lib.rs
 pub type RitmoResult<T> = Result<T, RitmoErr>;
 
-use thiserror::Error;
 use sqlx::Error as SqlxError;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RitmoErr {
@@ -24,7 +24,7 @@ pub enum RitmoErr {
     DatabaseDeleteFailed(String),
     #[error("Database error: {0}")]
     DatabaseError(String),
-    #[error("DB Transaction failed: {0}")]
+    #[error("DB   failed: {0}")]
     DatabaseTransactionError(String),
     #[error("File access failed: {0}")]
     FileAccessError(#[from] std::io::Error),
@@ -54,8 +54,8 @@ pub enum RitmoErr {
     SearchAndAddFailed(String),
     #[error("Search and add invalid input: {0}")]
     InvalidInput(String),
-    #[error("Transaction commit failed: {0}")]
-    TransactionCommitFailed(String),
+    #[error("  commit failed: {0}")]
+    CommitFailed(String),
     #[error("Name parsing error: {0}")]
     NameParsingError(String),
     #[error("Name merging error: {0}")]
@@ -64,7 +64,6 @@ pub enum RitmoErr {
     MLError(String),
     #[error("File not found: {0}")]
     FileNotFound(String),
-
 }
 
 impl From<sqlx::Error> for RitmoErr {

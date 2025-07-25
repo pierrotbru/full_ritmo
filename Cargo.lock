@@ -1307,6 +1307,7 @@ dependencies = [
  "serde",
  "sqlx",
  "tempfile",
+ "tokio",
 ]
 
 [[package]]

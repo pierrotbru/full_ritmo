@@ -5,7 +5,7 @@
 -- PRAGMA temp_store = MEMORY;
 -- PRAGMA auto_vacuum = INCREMENTAL;
 
--- BEGIN TRANSACTION;
+-- BEGIN  ;
 
 CREATE TABLE system_config (
     key TEXT PRIMARY KEY,
@@ -343,7 +343,7 @@ CREATE TRIGGER audit_books_insert
     FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, record_id, operation, new_values)
-    VALUES ('books', NEW.id, 'INSERT', 
+    VALUES ('books', NEW.id, 'INSERT',
             json_object('name', NEW.name, 'publication_date', NEW.publication_date, 'series_id', NEW.series_id));
 END;
 
@@ -371,7 +371,7 @@ CREATE TRIGGER audit_people_insert
     FOR EACH ROW
 BEGIN
     INSERT INTO audit_log (table_name, record_id, operation, new_values)
-    VALUES ('people', NEW.id, 'INSERT', 
+    VALUES ('people', NEW.id, 'INSERT',
             json_object('name', NEW.name, 'nationality', NEW.nationality, 'verified', NEW.verified));
 END;
 
@@ -395,7 +395,7 @@ BEGIN
 END;
 
 CREATE VIEW BooksSearchOptimized AS
-SELECT 
+SELECT
     b.id,
     b.name,
     b.original_title,
@@ -421,15 +421,15 @@ LEFT JOIN publishers pub ON b.publisher_id = pub.id
 LEFT JOIN books_people_roles bpr ON b.id = bpr.book_id
 LEFT JOIN people p ON bpr.person_id = p.id
 LEFT JOIN roles r ON bpr.role_id = r.id
-WHERE r.name IN ('Autore', 'Author', 'Scrittore') 
+WHERE r.name IN ('Autore', 'Author', 'Scrittore')
    OR bpr.role_id = (
-       SELECT MIN(role_id) 
-       FROM books_people_roles 
+       SELECT MIN(role_id)
+       FROM books_people_roles
        WHERE book_id = b.id
    );
 
 CREATE VIEW ContentsSearchOptimized AS
-SELECT 
+SELECT
     c.id,
     c.name,
     c.original_title,
@@ -448,8 +448,8 @@ LEFT JOIN people p ON cpr.person_id = p.id
 LEFT JOIN roles r ON cpr.role_id = r.id
 WHERE r.name IN ('Autore', 'Author', 'Scrittore')
    OR cpr.role_id = (
-       SELECT MIN(role_id) 
-       FROM contents_people_roles 
+       SELECT MIN(role_id)
+       FROM contents_people_roles
        WHERE content_id = c.id
    );
 
@@ -522,7 +522,7 @@ LEFT JOIN languages_roles lr ON rl.role = lr.id
 GROUP BY c.id;
 
 CREATE VIEW PeopleMatchingOptimized AS
-SELECT 
+SELECT
     p.id,
     p.name,
     p.display_name,
@@ -546,7 +546,7 @@ WHERE p.normalized_key IS NOT NULL
 GROUP BY p.id;
 
 CREATE VIEW LibraryStats AS
-SELECT 
+SELECT
     'books' as entity_type,
     COUNT(*) as total_count,
     COUNT(CASE WHEN has_cover = 1 THEN 1 END) as with_cover,
@@ -558,7 +558,7 @@ SELECT
     COUNT(CASE WHEN read_status = 'unread' THEN 1 END) as unread_count
 FROM books
 UNION ALL
-SELECT 
+SELECT
     'contents' as entity_type,
     COUNT(*) as total_count,
     0 as with_cover,
@@ -570,7 +570,7 @@ SELECT
     0 as unread_count
 FROM contents
 UNION ALL
-SELECT 
+SELECT
     'people' as entity_type,
     COUNT(*) as total_count,
     COUNT(CASE WHEN verified = 1 THEN 1 END) as verified,
@@ -582,7 +582,7 @@ SELECT
     0 as unread_count
 FROM people
 UNION ALL
-SELECT 
+SELECT
     'series' as entity_type,
     COUNT(*) as total_count,
     COUNT(CASE WHEN completed = 1 THEN 1 END) as completed,
@@ -595,7 +595,7 @@ SELECT
 FROM series;
 
 CREATE VIEW PossibleDuplicates AS
-SELECT 
+SELECT
     p1.id as person1_id,
     p1.name as person1_name,
     p1.confidence as confidence1,
@@ -612,34 +612,33 @@ WHERE p1.id < p2.id
   AND p1.normalized_key != '';
 
 CREATE VIEW BooksWithoutAuthor AS
-SELECT 
-    b.id, 
-    b.name, 
+SELECT
+    b.id,
+    b.name,
     b.publication_date,
     s.name as series_name,
     b.created_at
 FROM books b
 LEFT JOIN series s ON b.series_id = s.id
 WHERE b.id NOT IN (
-    SELECT DISTINCT book_id 
+    SELECT DISTINCT book_id
     FROM books_people_roles bpr
     JOIN roles r ON bpr.role_id = r.id
     WHERE r.name IN ('Autore', 'Author', 'Scrittore')
 );
 
 CREATE VIEW ContentsWithoutAuthor AS
-SELECT 
-    c.id, 
-    c.name, 
+SELECT
+    c.id,
+    c.name,
     c.publication_date,
     t.name as type_name,
     c.created_at
 FROM contents c
 LEFT JOIN types t ON c.type_id = t.id
 WHERE c.id NOT IN (
-    SELECT DISTINCT content_id 
+    SELECT DISTINCT content_id
     FROM contents_people_roles cpr
     JOIN roles r ON cpr.role_id = r.id
     WHERE r.name IN ('Autore', 'Author', 'Scrittore')
 );
-

@@ -1,4 +1,4 @@
-use sqlx::{Row, SqlitePool, Transaction, Sqlite};
+use sqlx::{Row, SqlitePool, Sqlite, Transaction};
 use crate::entity_learner::MLEntityLearner;
 use ritmo_errors::RitmoErr;
 

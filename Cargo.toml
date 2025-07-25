@@ -7,7 +7,9 @@ members = [
     "ritmo_formats",   # Supporto formati (EPUB, PDF, MOBI, etc.)
     "ritmo_search",    # Sistema di ricerca e indicizzazione
     "ritmo_sync",      # Sincronizzazione e backup
-    "ritmo_debug_cli", "ritmo_errors", "ritmo_ml",
+    "ritmo_debug_cli",
+    "ritmo_errors",
+    "ritmo_ml",
 ]
 resolver = "2"
 
@@ -16,6 +18,7 @@ resolver = "2"
 serde_json = "1.0.141"
 serde = "1.0.219"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "sqlite"] }
+tokio = { version = "1.46.1", features = ["full"] }
 
 [workspace.package]
 version = "0.1.0"

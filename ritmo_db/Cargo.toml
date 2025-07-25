@@ -9,6 +9,9 @@ serde = { workspace = true }
 ritmo_errors = { path = "../ritmo_errors" }
 ritmo_core = { path = "../ritmo_core" }
 chrono = "0.4.41"
+tokio = { workspace = true, features = ["full"] }
 
 [dev-dependencies]
 tempfile = "3.20.0"
+sqlx = { workspace = true, features = ["sqlite", "runtime-tokio", "macros"] }
+tokio = { workspace = true, features = ["full"] }
