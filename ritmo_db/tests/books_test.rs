@@ -1,5 +1,7 @@
-use ritmo_db::models::book::Book;
-use sqlx::{FromRow, Result, Sqlite, SqlitePool, Transaction};
+use sqlx::SqlitePool;
+use ritmo_db::models::books::Book;
+//use sqlx::{FromRow, Result, Sqlite, SqlitePool, Transaction, Execute};
+use sqlx::Executor;
 
 fn get_memory_pool() -> SqlitePool {
     // Usa una connessione in-memory per i test
