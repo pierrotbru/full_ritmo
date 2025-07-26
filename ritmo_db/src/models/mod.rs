@@ -4,3 +4,6 @@ pub mod books_people;
 pub mod contents;
 pub mod contents_people;
 pub mod languages;
+pub mod people;
+pub mod relations;
+pub mod tags;
