@@ -10,6 +10,7 @@ members = [
     "ritmo_debug_cli",
     "ritmo_errors",
     "ritmo_ml",
+    "ebook_parser"
 ]
 resolver = "2"
 
