@@ -1,6 +1,5 @@
 use sqlx::SqlitePool;
 use ritmo_db::models::books::Book;
-//use sqlx::{FromRow, Result, Sqlite, SqlitePool, Transaction, Execute};
 use sqlx::Executor;
 
 fn get_memory_pool() -> SqlitePool {
