@@ -10,3 +10,4 @@ anyhow = "1.0"
 ritmo_db = { path = "../ritmo_db" }
 ritmo_errors = { path = "../ritmo_errors" }
 tokio = { workspace = true, features = ["full"] }
+chrono = "0.4.41"

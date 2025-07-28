@@ -14,7 +14,7 @@ impl Types {
         name: &str,
         description: Option<&str>,
     ) -> Result<i64, sqlx::Error> {
-        let mut rec = sqlx::query("INSERT INTO types (name, description) VALUES (?, ?)")
+        let rec = sqlx::query("INSERT INTO types (name, description) VALUES (?, ?)")
             .bind(name)
             .bind(description)
             .execute(pool)

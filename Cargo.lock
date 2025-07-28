@@ -1281,6 +1281,7 @@ name = "ritmo_cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "ritmo_core",
  "ritmo_db",
