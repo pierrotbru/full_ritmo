@@ -10,6 +10,7 @@ use std::{fs, path::PathBuf, str::FromStr};
 static MIGRATOR: Migrator = migrate!();
 
 /// Struttura centralizzata per gestire tutte le interazioni con il database
+#[derive(Debug)]
 pub struct Database {
     /// Pool di connessioni al database
     pool: Pool<Sqlite>,
@@ -28,8 +29,8 @@ pub struct DatabaseMetadata {
     pub user: String,
     /// Timestamp dell'ultima apertura
     pub last_access: i64,
-    /// Numero di record nel database (cache)
-    pub record_counts: RecordCounts,
+//    /// Numero di record nel database (cache)
+//    pub record_counts: RecordCounts,
 }
 
 /// Conteggi dei record per tipo
@@ -61,13 +62,13 @@ impl Database {
         
         // Recupera i metadati del database
         let version = Self::get_database_version(&pool).await?;
-        let record_counts = Self::count_records(&pool).await?;
+//        let record_counts = Self::count_records(&pool).await?;
         
         let metadata = DatabaseMetadata {
             version,
             user: "pierrotbru".to_string(), // In produzione, ottenere dall'ambiente
             last_access: Utc::now().timestamp(),
-            record_counts,
+//            record_counts,
         };
         
         Ok(Self {
@@ -97,7 +98,7 @@ impl Database {
             version,
             user: "pierrotbru".to_string(),
             last_access: Utc::now().timestamp(),
-            record_counts: RecordCounts::default(),
+//            record_counts: RecordCounts::default(),
         };
         
         Ok(Self {

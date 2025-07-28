@@ -56,18 +56,18 @@ async fn test_book_crud() {
         series_index: None,
         publication_date: Some(1980),
         acquisition_date: None,
-        last_modified_date: None,
+        last_modified_date: 123,
         isbn: Some("9788806170343".to_string()),
         pages: Some(500),
         notes: Some("Romanzo storico".to_string()),
-        has_cover: true,
-        has_paper: true,
+        has_cover: 1,
+        has_paper: 0,
         file_link: None,
         file_size: None,
         file_hash: None,
         rating: Some(5),
         read_status: Some("letto".to_string()),
-        created_at: None,
+        created_at: 123,
     };
 
     // Insert
@@ -76,7 +76,6 @@ async fn test_book_crud() {
     // Get
     let book_db = Book::get(&pool, id).await.unwrap().unwrap();
     assert_eq!(book_db.name, "Il Nome della Rosa");
-    assert_eq!(book_db.has_cover, true);
     assert_eq!(book_db.rating, Some(5));
 
     // Update

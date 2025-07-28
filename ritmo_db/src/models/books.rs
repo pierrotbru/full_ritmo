@@ -1,29 +1,29 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, Result, SqlitePool};
 
-#[derive(Debug, Clone, Serialize, Deserialize, FromRow)]
+#[derive(Debug, Clone, Serialize, Deserialize, FromRow, Default)]
 pub struct Book {
-    pub id: i64,
+    pub id: i32,
     pub name: String,
     pub original_title: Option<String>,
-    pub publisher_id: Option<i64>,
-    pub format_id: Option<i64>,
-    pub series_id: Option<i64>,
-    pub series_index: Option<i64>,
+    pub publisher_id: Option<i32>,
+    pub format_id: Option<i32>,
+    pub series_id: Option<i32>,
+    pub series_index: Option<i32>,
     pub publication_date: Option<i64>,
     pub acquisition_date: Option<i64>,
-    pub last_modified_date: Option<i64>,
+    pub last_modified_date: i64,
     pub isbn: Option<String>,
-    pub pages: Option<i64>,
+    pub pages: Option<i32>,
     pub notes: Option<String>,
-    pub has_cover: bool,
-    pub has_paper: bool,
+    pub has_cover: i32,      // 0 or 1, consider using bool with custom conversion
+    pub has_paper: i32,      // 0 or 1, consider using bool with custom conversion
     pub file_link: Option<String>,
     pub file_size: Option<i64>,
     pub file_hash: Option<String>,
-    pub rating: Option<i64>,
+    pub rating: Option<i32>,
     pub read_status: Option<String>,
-    pub created_at: Option<i64>,
+    pub created_at: i64,
 }
 
 impl Book {
