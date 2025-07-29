@@ -1,6 +1,9 @@
+use std::str::FromStr;
 use ritmo_errors::RitmoErr;
 use ritmo_errors::RitmoResult;
 use sha2::{Digest, Sha256};
+use sqlx::sqlite::{SqliteConnectOptions, SqliteJournalMode, SqlitePool, SqliteSynchronous};
+use sqlx::query;
 use std::fs;
 use std::path::{Path, PathBuf};
 pub use utils::normalize_path;
@@ -23,6 +26,8 @@ pub struct LibraryConfig {
 }
 
 impl LibraryConfig {
+    // Metodi esistenti...
+    
     /// Crea una nuova configurazione della libreria
     pub fn new<P: AsRef<Path>>(root_path: P) -> Self {
         let root = root_path.as_ref().to_path_buf();
@@ -39,7 +44,7 @@ impl LibraryConfig {
     /// Inizializza la struttura delle cartelle se non esistono.
     /// Se la root esiste ed è NON vuota, non crea la struttura.
     pub fn initialize(&self) -> Result<(), RitmoErr> {
-        // Controlla se la root_path esiste già
+        // Implementazione esistente...
         if self.root_path.exists() {
             // Controlla se è una directory e se è vuota
             if self.root_path.is_dir() {
@@ -71,6 +76,77 @@ impl LibraryConfig {
             && self.database_path.exists()
             && self.storage_path.exists()
             && self.config_path.exists())
+    }
+    
+    // NUOVI METODI PER LA GESTIONE DEL DATABASE
+    
+    /// Inizializza il database nel percorso specificato.
+    /// 
+    /// Crea un nuovo database e applica le migrazioni necessarie.
+    pub async fn initialize_database(&self) -> Result<(), RitmoErr> {
+        let db_path = self.database_path.join("ritmo.db");
+        // Crea un pool di connessioni e esegui le migrazioni
+        let pool = self.create_pool(&db_path, true).await?;
+
+        // Verifica che il database sia stato inizializzato correttamente
+        let db_version: (i64,) = sqlx::query_as("PRAGMA user_version")
+            .fetch_one(&pool)
+            .await
+            .map_err(|e| RitmoErr::DatabaseQueryFailed(e.to_string()))?;
+
+        println!("Database inizializzato con successo in {}", db_path.display());
+        println!("Versione del database: {}", db_version.0);
+
+        Ok(())
+    }
+
+    /// Crea un pool di connessioni al database.
+    pub async fn create_pool(&self, db_path: &PathBuf, create: bool) -> Result<SqlitePool, RitmoErr> {
+        if create && !db_path.exists() {
+            fs::File::create(db_path.clone())
+                .map_err(|e| RitmoErr::IoError(format!("Impossibile creare il file del database: {}", e)))?;
+        }
+
+        let database_url = format!("sqlite:///{}", db_path.to_string_lossy());
+        let mut options = SqliteConnectOptions::from_str(&database_url)
+            .map_err(|e| RitmoErr::SqlxError(e))?
+            .create_if_missing(true)
+            .journal_mode(SqliteJournalMode::Wal)
+            .synchronous(SqliteSynchronous::Normal);
+
+        options = options
+            .pragma("cache_size", "-64000")
+            .pragma("temp_store", "MEMORY");
+        let pool = SqlitePool::connect_with(options)
+            .await
+            .map_err(RitmoErr::SqlxError)?;
+
+        // Abilita il supporto alle chiavi esterne
+        query("PRAGMA foreign_keys = ON;")
+            .execute(&pool)
+            .await
+            .map_err(|e| RitmoErr::DatabaseQueryFailed(e.to_string()))?;
+
+        query("ANALYZE;")
+            .execute(&pool)
+            .await
+            .map_err(|e| RitmoErr::DatabaseQueryFailed(e.to_string()))?;
+
+        query("PRAGMA optimize;")
+            .execute(&pool)
+            .await
+            .map_err(|e| RitmoErr::DatabaseQueryFailed(e.to_string()))?;
+
+        Ok(pool)
+    }
+    
+    /// Verifica il percorso del database e assicura che sia valido
+    pub fn verify_database_path(&self) -> Result<PathBuf, RitmoErr> {
+        if !self.database_path.exists() {
+            return Err(RitmoErr::IoError("Il percorso del database non esiste".to_string()));
+        }
+        
+        Ok(self.database_path.clone())
     }
 }
 

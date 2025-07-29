@@ -9,7 +9,10 @@ ritmo_errors = { path = "../ritmo_errors" }
 sha2 = "0.10.9"
 serde.workspace = true
 serde_json.workspace = true
+sqlx.workspace = true
 
 [dev-dependencies]
 tempfile = "3.8"
 tokio-test = "0.4"
+tokio = { version = "1", features = ["full", "macros"] }
+sqlx = { workspace = true, features = ["runtime-tokio-rustls", "sqlite"] }

@@ -4,7 +4,9 @@ use ritmo_core::{HashStorage, LibraryConfig};
 use std::fs;
 use std::path::{Path, PathBuf};
 use tempfile::tempdir;
+use sqlx::SqlitePool;
 
+// Test esistenti per LibraryConfig
 #[test]
 fn test_library_config_new() {
     let root_path = Path::new("/test/path");
@@ -74,6 +76,93 @@ fn test_library_config_validate() {
     assert_eq!(validate_result.unwrap(), true);
 }
 
+// Nuovi test per le funzionalità di connessione al database
+
+#[tokio::test]
+async fn test_create_pool() {
+    // Utilizziamo tempdir per creare una directory temporanea per i test
+    let temp_dir = tempdir().expect("Impossibile creare directory temporanea");
+    let root_path = temp_dir.path();
+    
+    let config = LibraryConfig::new(root_path);
+    
+    // Inizializza la struttura delle directory
+    config.initialize().expect("Inizializzazione fallita");
+    
+    // Crea un file di database temporaneo per il test
+    let db_path = config.database_path.join("test.db");
+    
+    // Testa la creazione del pool di connessioni
+    let pool_result = config.create_pool(&db_path, true).await;
+    assert!(pool_result.is_ok(), "Errore nella creazione del pool: {:?}", pool_result.err());
+    
+    // Verifica che il pool funzioni eseguendo una query semplice
+    let pool = pool_result.unwrap();
+    let query_result = sqlx::query("SELECT 1").execute(&pool).await;
+    assert!(query_result.is_ok(), "Errore nell'esecuzione della query: {:?}", query_result.err());
+}
+
+#[test]
+fn test_verify_database_path() {
+    // Utilizziamo tempdir per creare una directory temporanea per i test
+    let temp_dir = tempdir().expect("Impossibile creare directory temporanea");
+    let root_path = temp_dir.path();
+    
+    let config = LibraryConfig::new(root_path);
+    
+    // Il percorso del database non dovrebbe esistere inizialmente
+    let result = config.verify_database_path();
+    assert!(result.is_err(), "Verifica del percorso dovrebbe fallire se non esiste");
+    
+    // Creiamo la directory del database
+    fs::create_dir_all(&config.database_path).expect("Impossibile creare directory del database");
+    
+    // Ora il percorso dovrebbe essere valido
+    let result = config.verify_database_path();
+    assert!(result.is_ok(), "Verifica del percorso dovrebbe riuscire dopo la creazione della directory");
+    assert_eq!(result.unwrap(), config.database_path);
+}
+
+// Test per l'interazione con il pool di connessioni
+#[tokio::test]
+async fn test_create_pool_with_options() {
+    // Utilizziamo tempdir per creare una directory temporanea per i test
+    let temp_dir = tempdir().expect("Impossibile creare directory temporanea");
+    let root_path = temp_dir.path();
+    
+    let config = LibraryConfig::new(root_path);
+    
+    // Inizializza la struttura delle directory
+    config.initialize().expect("Inizializzazione fallita");
+    
+    // Crea un file di database temporaneo per il test
+    let db_path = config.database_path.join("test_options.db");
+    
+    // Testa la creazione del pool di connessioni
+    let pool_result = config.create_pool(&db_path, true).await;
+    assert!(pool_result.is_ok(), "Errore nella creazione del pool: {:?}", pool_result.err());
+    
+    let pool = pool_result.unwrap();
+    
+    // Verifica che le opzioni del pragma siano state applicate correttamente
+    // Testiamo foreign_keys
+    let foreign_keys: (i64,) = sqlx::query_as("PRAGMA foreign_keys")
+        .fetch_one(&pool)
+        .await
+        .expect("Errore nell'esecuzione della query PRAGMA foreign_keys");
+    
+    assert_eq!(foreign_keys.0, 1, "PRAGMA foreign_keys dovrebbe essere impostato a ON (1)");
+    
+    // Testiamo journal_mode
+    let journal_mode: (String,) = sqlx::query_as("PRAGMA journal_mode")
+        .fetch_one(&pool)
+        .await
+        .expect("Errore nell'esecuzione della query PRAGMA journal_mode");
+    
+    assert_eq!(journal_mode.0.to_uppercase(), "WAL", "PRAGMA journal_mode dovrebbe essere impostato a WAL");
+}
+
+// Test esistenti per HashStorage
 #[test]
 fn test_hash_storage_calculate_path() {
     let storage_path = PathBuf::from("/test/storage");
@@ -128,6 +217,7 @@ fn test_hash_storage_calculate_file_hash() {
     assert_eq!(calculated_hash, direct_hash);
 }
 
+// Test esistenti per normalize_path
 use std::env;
 
 #[test]

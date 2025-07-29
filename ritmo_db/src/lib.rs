@@ -6,6 +6,6 @@ pub mod importers;
 pub mod database;
 
 // Re-export delle funzioni più comuni per comodità
-pub use connection::{create_pool, initialize_database, is_valid_database};
+pub use connection::{create_pool, initialize_database};
 pub use models::*;
 pub use database::*;
