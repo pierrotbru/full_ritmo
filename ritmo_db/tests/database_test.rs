@@ -1,9 +1,10 @@
 use ritmo_db::database::Database;
 use ritmo_db::books::Book;
+use ritmo_db::books::NewBook;
 use tempfile::TempDir;
 
-fn sample_book() -> Book {
-    Book {
+fn sample_book() -> NewBook {
+    NewBook {
         name: "Test Book".to_string(),
         ..Default::default()
     }

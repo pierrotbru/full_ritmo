@@ -9,7 +9,6 @@ pub struct Content {
     pub publication_date: Option<i64>,
     pub pages: Option<i64>,
     pub notes: Option<String>,
-    pub rating: Option<i64>,
     pub created_at: i64,
     pub updated_at: i64,
 }
@@ -22,15 +21,15 @@ pub struct NewContent {
     pub publication_date: Option<i64>,
     pub pages: Option<i64>,
     pub notes: Option<String>,
-    pub rating: Option<i64>,
 }
 
 impl Content {
     pub async fn create(pool: &sqlx::SqlitePool, new_content: &NewContent) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query(
-            "INSERT INTO contents (name, original_title, type_id, publication_date, pages, notes, rating, created_at, updated_at)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO contents (
+                name, original_title, type_id, publication_date, pages, notes, created_at, updated_at
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(&new_content.name)
         .bind(&new_content.original_title)
@@ -38,7 +37,6 @@ impl Content {
         .bind(&new_content.publication_date)
         .bind(&new_content.pages)
         .bind(&new_content.notes)
-        .bind(&new_content.rating)
         .bind(now)
         .bind(now)
         .execute(pool)
@@ -59,9 +57,9 @@ impl Content {
     pub async fn update(&self, pool: &sqlx::SqlitePool) -> Result<u64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query(
-            "UPDATE contents 
-             SET name = ?, original_title = ?, type_id = ?, publication_date = ?, pages = ?, notes = ?, rating = ?, updated_at = ? 
-             WHERE id = ?"
+            "UPDATE contents SET
+                name = ?, original_title = ?, type_id = ?, publication_date = ?, pages = ?, notes = ?, updated_at = ?
+            WHERE id = ?"
         )
         .bind(&self.name)
         .bind(&self.original_title)
@@ -69,7 +67,6 @@ impl Content {
         .bind(&self.publication_date)
         .bind(&self.pages)
         .bind(&self.notes)
-        .bind(&self.rating)
         .bind(now)
         .bind(self.id)
         .execute(pool)

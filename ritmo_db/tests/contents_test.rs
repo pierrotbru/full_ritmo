@@ -18,7 +18,6 @@ async fn test_contents_crud() {
             publication_date INTEGER,
             pages INTEGER CHECK (pages > 0),
             notes TEXT,
-            rating INTEGER CHECK (rating >= 1 AND rating <= 5),
             created_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
             updated_at INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
             FOREIGN KEY (type_id) REFERENCES types(id) ON DELETE SET NULL
@@ -40,7 +39,6 @@ async fn test_contents_crud() {
         publication_date: Some(1954),
         pages: Some(1200),
         notes: Some("Capolavoro fantasy".to_string()),
-        rating: Some(5),
     };
     let id = Content::create(&pool, &new_content).await.unwrap();
     assert!(id > 0);
@@ -51,21 +49,18 @@ async fn test_contents_crud() {
     assert_eq!(content.original_title.as_deref(), Some("The Lord of the Rings"));
     assert_eq!(content.type_id, Some(type_id));
     assert_eq!(content.pages, Some(1200));
-    assert_eq!(content.rating, Some(5));
 
     // --- UPDATE ---
     let mut content = content;
     content.name = "Il Silmarillion".to_string();
     content.original_title = Some("The Silmarillion".to_string());
     content.pages = Some(800);
-    content.rating = Some(4);
     let updated = content.update(&pool).await.unwrap();
     assert_eq!(updated, 1);
 
     let content = Content::get(&pool, id).await.unwrap().unwrap();
     assert_eq!(content.name, "Il Silmarillion");
     assert_eq!(content.pages, Some(800));
-    assert_eq!(content.rating, Some(4));
 
     // --- LIST ALL ---
     let all = Content::list_all(&pool).await.unwrap();

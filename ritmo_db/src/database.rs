@@ -1,3 +1,4 @@
+use crate::books::NewBook;
 use crate::books::Book;
 use chrono::Utc;
 use ritmo_errors::{RitmoErr, RitmoResult};
@@ -308,7 +309,7 @@ impl Database {
     // --- OPERAZIONI CRUD SUI LIBRI ---
     
     /// Aggiunge un nuovo libro al database
-    pub async fn add_book(&self, book: &Book) -> RitmoResult<i64> {
+    pub async fn add_book(&self, book: &NewBook) -> RitmoResult<i64> {
         let book_id = Book::create(&self.pool, book)
             .await
             .map_err(|e| RitmoErr::DatabaseError(format!("Errore nell'inserimento del libro: {}", e)))?;
