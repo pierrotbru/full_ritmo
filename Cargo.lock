@@ -1293,7 +1293,9 @@ dependencies = [
 name = "ritmo_core"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "dirs",
+ "ritmo_db",
  "ritmo_errors",
  "serde",
  "serde_json",
@@ -1310,7 +1312,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
- "ritmo_core",
  "ritmo_errors",
  "serde",
  "sqlx",

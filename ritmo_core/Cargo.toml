@@ -10,6 +10,9 @@ sha2 = "0.10.9"
 serde.workspace = true
 serde_json.workspace = true
 sqlx.workspace = true
+ritmo_db = { path = "../ritmo_db" }
+tokio = { workspace = true, features = ["full"] }
+chrono = "0.4"
 
 [dev-dependencies]
 tempfile = "3.8"

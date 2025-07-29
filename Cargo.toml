@@ -10,8 +10,8 @@ members = [
     "ritmo_debug_cli",
     "ritmo_errors",
     "ritmo_ml",
-    "ebook_parser"
-]
+    "ebook_parser",
+    ]
 resolver = "2"
 
 # Dipendenze condivise per tutto il workspace

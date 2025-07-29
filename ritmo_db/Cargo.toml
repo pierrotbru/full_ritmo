@@ -7,7 +7,7 @@ edition = "2021"
 sqlx = { workspace = true }
 serde = { workspace = true }
 ritmo_errors = { path = "../ritmo_errors" }
-ritmo_core = { path = "../ritmo_core" }
+#ritmo_core = { path = "../ritmo_core" }
 chrono = "0.4.41"
 tokio = { workspace = true, features = ["full"] }
 anyhow = "1.0.98"
