@@ -1,5 +1,10 @@
-use std::path::{Path, PathBuf};
+pub mod dto;
+pub mod service;
+
+pub use dto::*;
+
 use std::fs;
+use std::path::{Path, PathBuf};
 
 pub struct LibraryConfig {
     pub root_path: PathBuf,
@@ -86,7 +91,10 @@ impl LibraryConfig {
         fn normalize_db_path(path: &std::path::Path) -> String {
             let c = std::fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
             let s = c.to_str().unwrap();
-            let s = s.strip_prefix(r"\\?\").or_else(|| s.strip_prefix("//?/")).unwrap_or(s);
+            let s = s
+                .strip_prefix(r"\\?\")
+                .or_else(|| s.strip_prefix("//?/"))
+                .unwrap_or(s);
             s.replace("\\", "/")
         }
 
