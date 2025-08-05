@@ -1,0 +1,25 @@
+[
+  {
+    "adapter": "CodeLLDB",
+    "label": "cargo test -p ritmo_core --all-targets",
+    "build": {
+      "label": "cargo test -p ritmo_core --all-targets",
+      "command": "cargo",
+      "args": ["test", "--package", "ritmo_core", "--all-targets", "--no-run"],
+      "env": {
+        "RUSTC_TOOLCHAIN": "/home/ema/.rustup/toolchains/stable-x86_64-unknown-linux-gnu"
+      },
+      "cwd": "/home/ema/emacal_rust/full_ritmo",
+      "use_new_terminal": false,
+      "allow_concurrent_runs": false,
+      "reveal": "always",
+      "reveal_target": "dock",
+      "hide": "never",
+      "tags": [],
+      "shell": "system",
+      "show_summary": false,
+      "show_command": false
+    },
+    "sourceLanguages": ["rust"]
+  }
+]

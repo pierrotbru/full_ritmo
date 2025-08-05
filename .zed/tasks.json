@@ -1,0 +1,10 @@
+[
+  {
+    "name": "Build Project",
+    "command": "cargo",
+    "args": ["build"],
+    "is_default": true,
+    "log_output": true,
+    "env": {}
+  }
+]
