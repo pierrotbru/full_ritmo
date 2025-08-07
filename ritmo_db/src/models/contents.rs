@@ -1,8 +1,12 @@
+use ritmo_core::ContentDto;
+use chrono::Utc;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
+#[derive(Default)]
 pub struct Content {
-    pub id: i64,
+    /// Vale lo stesso che per Book, quando si immette un nuovo Content il suo Id è None, memorizzandolo viene assegnato.
+    pub id: Option<i64>,
     pub name: String,
     pub original_title: Option<String>,
     pub type_id: Option<i64>,
@@ -13,29 +17,33 @@ pub struct Content {
     pub updated_at: i64,
 }
 
-#[derive(Debug)]
-pub struct NewContent {
-    pub name: String,
-    pub original_title: Option<String>,
-    pub type_id: Option<i64>,
-    pub publication_date: Option<i64>,
-    pub pages: Option<i64>,
-    pub notes: Option<String>,
-}
-
 impl Content {
-    pub async fn create(pool: &sqlx::SqlitePool, new_content: &NewContent) -> Result<i64, sqlx::Error> {
+
+    pub fn from_dto(dto: &ContentDto) -> Self {
+        let now = Utc::now().timestamp();
+
+        Self {
+            name: dto.name.clone(),
+            original_title: dto.original_title.clone(),
+            type_id: dto.type_id,
+            publication_date: dto.publication_date,
+            notes: dto.notes.clone(),
+            created_at: now,
+            ..Default::default()
+        }
+    }
+
+    pub async fn create(pool: &sqlx::SqlitePool, new_content: &ContentDto) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query(
             "INSERT INTO contents (
-                name, original_title, type_id, publication_date, pages, notes, created_at, updated_at
+                name, original_title, type_id, publication_date, notes, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         )
         .bind(&new_content.name)
         .bind(&new_content.original_title)
         .bind(&new_content.type_id)
         .bind(&new_content.publication_date)
-        .bind(&new_content.pages)
         .bind(&new_content.notes)
         .bind(now)
         .bind(now)
