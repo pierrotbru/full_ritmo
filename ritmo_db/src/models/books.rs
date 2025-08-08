@@ -27,10 +27,10 @@ pub struct Book {
 
 impl Book {
     // Metodo per la conversione da DTO al modello
-    pub fn from_dto(dto: &BookDto) -> Self {
+    pub fn from_dto(dto: &mut BookDto) -> Self {
         let now = Utc::now().timestamp();
 
-        Self {
+        let mut book = Self {
             name: dto.name.clone(),
             original_title: dto.original_title.clone(),
             publisher_id: dto.publisher_id,
@@ -43,12 +43,11 @@ impl Book {
             notes: dto.notes.clone(),
             has_paper: if dto.has_paper { 1 } else { 0 },
             has_cover: if dto.has_cover { 1 } else { 0 },
-            file_link: dto.file_link.clone(),
-            file_size: dto.file_size,
-            file_hash: dto.file_hash.clone(),
             created_at: now,
             ..Default::default()
-        }
+        };
+        book.set_book_persistence();
+        book
     }
 
     pub async fn create(pool: &sqlx::SqlitePool, new_book: &Book) -> Result<i64, sqlx::Error> {
@@ -116,5 +115,12 @@ impl Book {
         .fetch_all(pool)
         .await?;
         Ok(found)
+    }
+
+    /// questo è in placeholder per la routine che dovrà calcolare questi valori. I valori appartengono a Book, non sono necessariamente noti a livello superiore
+    pub fn set_book_persistence(&mut self) {
+        self.file_link = Some("ab/cb/abcdefghijklmnopqrstuvwxyz0123456789012345678901".to_string());
+        self.file_size = Some(100000);
+        self.file_hash = Some("abcdefghijklmnopqrstuvwxyz0123456789012345678901".to_string());
     }
 }

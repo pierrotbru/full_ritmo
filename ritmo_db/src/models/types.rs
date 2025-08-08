@@ -1,14 +1,14 @@
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
-pub struct Types {
+pub struct Type {
     pub id: i64,
     pub name: String,
     pub description: Option<String>,
     pub created_at: i64,
 }
 
-impl Types {
+impl Type {
     pub async fn create(
         pool: &sqlx::SqlitePool,
         name: &str,
@@ -24,8 +24,8 @@ impl Types {
         Ok(id)
     }
 
-    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Types>, sqlx::Error> {
-        let result = sqlx::query_as::<_, Types>(
+    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Type>, sqlx::Error> {
+        let result = sqlx::query_as::<_, Type>(
             "SELECT id, name, description, created_at FROM types WHERE id = ?",
         )
         .bind(id)

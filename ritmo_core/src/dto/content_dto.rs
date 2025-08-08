@@ -1,4 +1,4 @@
-use crate::dto::{LanguageDto, PersonRoleDto, TagDto};
+use crate::dto::TagDto;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -18,26 +18,7 @@ pub struct ContentDto {
 
     pub notes: Option<String>,
 
-    // Relazioni multiple
-    pub authors: Vec<PersonRoleDto>,
     pub tags: Vec<TagDto>,
-    pub languages: Vec<LanguageDto>,
-}
-
-impl Default for ContentDto {
-    fn default() -> Self {
-        Self {
-            id: None,
-            name: String::new(),
-            original_title: None,
-            type_name: String::new(),
-            type_id: None,
-            type_is_new: false,
-            publication_date: None,
-            notes: None,
-            authors: Vec::new(),
-            tags: Vec::new(),
-            languages: Vec::new(),
-        }
-    }
+    //    pub languages: Vec<LanguageDto>,
+    pub people: Vec<String>,
 }
