@@ -3,11 +3,33 @@
 // ritmo_errors/src/lib.rs
 pub type RitmoResult<T> = Result<T, RitmoErr>;
 
+use std::fmt;
 use sqlx::Error as SqlxError;
 use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RitmoErr {
+
+    #[error("Errore durante la creazione del database: {0}")]
+    DatabaseCreation(String),
+    
+    #[error("Errore di connessione al database: {0}")]
+    DatabaseConnection(String),
+    
+    #[error("Database non trovato: {0}")]
+    DatabaseNotFound(String),
+    
+    #[error("Errore nella query al database: {0}")]
+    DatabaseQuery(String),
+    
+    #[error("Errore nella migrazione del database: {0}")]
+    DatabaseMigration(String),
+    
+    #[error("Errore generico: {0}")]
+    Generic(String),
+    
+
+
     #[error("Migration failed: {0}")]
     DatabaseMigrationFailed(String),
     #[error("IO error: {0}")]

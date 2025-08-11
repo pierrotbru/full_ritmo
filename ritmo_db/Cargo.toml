@@ -15,7 +15,14 @@ ritmo_db_core = { path = "../ritmo_db_core" }
 sha2 = "0.10.9"
 hex = "0.4.3"
 
+# Aggiungi questa sezione se non è già presente
+[[example]]
+name = "add_book"
+path = "examples/add_book.rs"
+
+
 [dev-dependencies]
 tempfile = "3.20.0"
 sqlx = { workspace = true, features = ["sqlite", "runtime-tokio", "macros"] }
 tokio = { workspace = true, features = ["full"] }
+chrono = { workspace = true }
