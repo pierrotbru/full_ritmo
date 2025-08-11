@@ -1,8 +1,9 @@
+use ritmo_core::PublisherDto;
 use sqlx::FromRow;
 
-#[derive(Debug, Clone, FromRow)]
+#[derive(Debug, Clone, FromRow, Default)]
 pub struct Publisher {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub country: Option<String>,
     pub website: Option<String>,
@@ -11,16 +12,15 @@ pub struct Publisher {
     pub updated_at: i64,
 }
 
-#[derive(Debug)]
-pub struct NewPublisher {
-    pub name: String,
-    pub country: Option<String>,
-    pub website: Option<String>,
-    pub notes: Option<String>,
-}
-
 impl Publisher {
-    pub async fn create(pool: &sqlx::SqlitePool, new_publisher: &NewPublisher) -> Result<i64, sqlx::Error> {
+    pub fn from_dto(_dto: &PublisherDto) -> Self {
+        Publisher::default()
+    }
+
+    pub async fn create(
+        pool: &sqlx::SqlitePool,
+        new_publisher: &Publisher,
+    ) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query(
             "INSERT INTO publishers (name, country, website, notes, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)"
@@ -37,22 +37,21 @@ impl Publisher {
     }
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Publisher>, sqlx::Error> {
-        let publisher = sqlx::query_as::<_, Publisher>(
-            "SELECT * FROM publishers WHERE id = ?"
-        )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?;
+        let publisher = sqlx::query_as::<_, Publisher>("SELECT * FROM publishers WHERE id = ?")
+            .bind(id)
+            .fetch_optional(pool)
+            .await?;
         Ok(publisher)
     }
 
-    pub async fn get_by_name(pool: &sqlx::SqlitePool, name: &str) -> Result<Option<Publisher>, sqlx::Error> {
-        let publisher = sqlx::query_as::<_, Publisher>(
-            "SELECT * FROM publishers WHERE name = ?"
-        )
-        .bind(name)
-        .fetch_optional(pool)
-        .await?;
+    pub async fn get_by_name(
+        pool: &sqlx::SqlitePool,
+        name: &str,
+    ) -> Result<Option<Publisher>, sqlx::Error> {
+        let publisher = sqlx::query_as::<_, Publisher>("SELECT * FROM publishers WHERE name = ?")
+            .bind(name)
+            .fetch_optional(pool)
+            .await?;
         Ok(publisher)
     }
 
@@ -73,25 +72,24 @@ impl Publisher {
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query(
-            "DELETE FROM publishers WHERE id = ?"
-        )
-        .bind(id)
-        .execute(pool)
-        .await?;
+        let result = sqlx::query("DELETE FROM publishers WHERE id = ?")
+            .bind(id)
+            .execute(pool)
+            .await?;
         Ok(result.rows_affected())
     }
 
     pub async fn list_all(pool: &sqlx::SqlitePool) -> Result<Vec<Publisher>, sqlx::Error> {
-        let publishers = sqlx::query_as::<_, Publisher>(
-            "SELECT * FROM publishers ORDER BY name"
-        )
-        .fetch_all(pool)
-        .await?;
+        let publishers = sqlx::query_as::<_, Publisher>("SELECT * FROM publishers ORDER BY name")
+            .fetch_all(pool)
+            .await?;
         Ok(publishers)
     }
 
-    pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Publisher>, sqlx::Error> {
+    pub async fn search(
+        pool: &sqlx::SqlitePool,
+        pattern: &str,
+    ) -> Result<Vec<Publisher>, sqlx::Error> {
         let search_pattern = format!("%{}%", pattern);
         let publishers = sqlx::query_as::<_, Publisher>(
             "SELECT * FROM publishers WHERE name LIKE ? OR country LIKE ? OR website LIKE ? OR notes LIKE ? ORDER BY name"

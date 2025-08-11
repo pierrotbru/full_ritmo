@@ -1,5 +1,5 @@
 use chrono::Utc;
-use ritmo_core::{BookDto, ContentDto};
+use ritmo_core::ContentDto;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow, Default)]

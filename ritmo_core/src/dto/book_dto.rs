@@ -1,12 +1,9 @@
-use crate::dto::{ContentDto, TagDto};
+use crate::dto::{ContentDto, PersonDto, TagDto};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BookDto {
-    pub id: Option<i64>,
-
     pub name: String,
-
     pub original_title: Option<String>,
 
     // Publisher con campi aggiuntivi
@@ -30,8 +27,6 @@ pub struct BookDto {
     pub acquisition_date: Option<i64>,
     pub isbn: Option<String>,
 
-    pub pages: Option<i64>,
-
     pub notes: Option<String>,
     pub has_cover: bool,
     pub has_paper: bool,
@@ -40,4 +35,5 @@ pub struct BookDto {
     pub file_hash: Option<String>,
     pub tags: Vec<TagDto>,
     pub contents: Vec<ContentDto>,
+    pub people: Vec<PersonDto>,
 }

@@ -2,7 +2,7 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Format {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub description: Option<String>,
     pub created_at: i64,
@@ -14,14 +14,12 @@ impl Format {
         name: &str,
         description: Option<&str>,
     ) -> Result<i64, sqlx::Error> {
-        let rec = sqlx::query("INSERT INTO formats (name, description) VALUES (?, ?)")
+        let result = sqlx::query("INSERT INTO formats (name, description) VALUES (?, ?)")
             .bind(name)
             .bind(description)
             .execute(pool)
             .await?;
-        // Recupera l'ID appena inserito
-        let id = rec.last_insert_rowid();
-        Ok(id)
+        Ok(result.last_insert_rowid())
     }
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Format>, sqlx::Error> {

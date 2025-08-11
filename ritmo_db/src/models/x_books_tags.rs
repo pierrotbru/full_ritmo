@@ -1,4 +1,3 @@
-use ritmo_core::{BookDto, TagDto};
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow, PartialEq, Eq)]
@@ -8,13 +7,6 @@ pub struct BookTag {
 }
 
 impl BookTag {
-    pub fn from_dto(bookdto: &mut BookDto, tagdto: &TagDto) -> Option<Self> {
-        let book_id = bookdto.id?;
-        let tag_id = tagdto.id?;
-
-        Some(Self { book_id, tag_id })
-    }
-
     pub async fn create(pool: &sqlx::SqlitePool, new_link: &BookTag) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT INTO books_tags (book_id, tag_id) VALUES (?, ?)")
             .bind(new_link.book_id)

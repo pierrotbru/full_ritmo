@@ -2,7 +2,7 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Person {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub display_name: Option<String>,
     pub given_name: Option<String>,
@@ -42,17 +42,23 @@ pub struct NewPerson {
 }
 
 impl Person {
-    pub async fn create(pool: &sqlx::SqlitePool, new_person: &NewPerson) -> Result<i64, sqlx::Error> {
+    pub async fn create(
+        pool: &sqlx::SqlitePool,
+        new_person: &NewPerson,
+    ) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let confidence = new_person.confidence.unwrap_or(1.0);
-        let source = new_person.source.clone().unwrap_or_else(|| "biblioteca".to_string());
+        let source = new_person
+            .source
+            .clone()
+            .unwrap_or_else(|| "biblioteca".to_string());
         let verified = new_person.verified.unwrap_or(0);
         let result = sqlx::query(
             "INSERT INTO people (
                 name, display_name, given_name, surname, middle_names, title, suffix, nationality,
                 birth_date, death_date, biography, normalized_key, confidence, source, verified,
                 created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&new_person.name)
         .bind(&new_person.display_name)
@@ -75,14 +81,13 @@ impl Person {
         .await?;
         Ok(result.last_insert_rowid())
     }
+    pub fn from_dto() {}
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Person>, sqlx::Error> {
-        let person = sqlx::query_as::<_, Person>(
-            "SELECT * FROM people WHERE id = ?"
-        )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?;
+        let person = sqlx::query_as::<_, Person>("SELECT * FROM people WHERE id = ?")
+            .bind(id)
+            .fetch_optional(pool)
+            .await?;
         Ok(person)
     }
 
@@ -118,25 +123,24 @@ impl Person {
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query(
-            "DELETE FROM people WHERE id = ?"
-        )
-        .bind(id)
-        .execute(pool)
-        .await?;
+        let result = sqlx::query("DELETE FROM people WHERE id = ?")
+            .bind(id)
+            .execute(pool)
+            .await?;
         Ok(result.rows_affected())
     }
 
     pub async fn list_all(pool: &sqlx::SqlitePool) -> Result<Vec<Person>, sqlx::Error> {
-        let all = sqlx::query_as::<_, Person>(
-            "SELECT * FROM people ORDER BY name"
-        )
-        .fetch_all(pool)
-        .await?;
+        let all = sqlx::query_as::<_, Person>("SELECT * FROM people ORDER BY name")
+            .fetch_all(pool)
+            .await?;
         Ok(all)
     }
 
-    pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Person>, sqlx::Error> {
+    pub async fn search(
+        pool: &sqlx::SqlitePool,
+        pattern: &str,
+    ) -> Result<Vec<Person>, sqlx::Error> {
         let search_pattern = format!("%{}%", pattern);
         let found = sqlx::query_as::<_, Person>(
             "SELECT * FROM people WHERE name LIKE ? OR display_name LIKE ? OR given_name LIKE ? OR surname LIKE ? OR biography LIKE ? ORDER BY name"

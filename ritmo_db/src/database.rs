@@ -243,7 +243,7 @@ impl Database {
 
         Ok(version.0)
     }
-
+    #[allow(dead_code)]
     /// Conta i record nel database
     async fn count_records(pool: &Pool<Sqlite>) -> RitmoResult<RecordCounts> {
         let mut counts = RecordCounts::default();

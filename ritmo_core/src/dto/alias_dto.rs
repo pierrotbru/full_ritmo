@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct LanguageDto {
+pub struct AliasDto {
     pub name: String,
-    pub role: String,
+    pub alias_normalized: String,
 }

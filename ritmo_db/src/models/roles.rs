@@ -2,7 +2,7 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Role {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub description: Option<String>,
     pub created_at: i64,

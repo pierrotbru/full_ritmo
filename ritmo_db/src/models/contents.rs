@@ -1,9 +1,8 @@
-use ritmo_core::ContentDto;
 use chrono::Utc;
+use ritmo_core::ContentDto;
 use sqlx::FromRow;
 
-#[derive(Debug, Clone, FromRow)]
-#[derive(Default)]
+#[derive(Debug, Clone, FromRow, Default)]
 pub struct Content {
     /// Vale lo stesso che per Book, quando si immette un nuovo Content il suo Id è None, memorizzandolo viene assegnato.
     pub id: Option<i64>,
@@ -18,7 +17,6 @@ pub struct Content {
 }
 
 impl Content {
-
     pub fn from_dto(dto: &ContentDto) -> Self {
         let now = Utc::now().timestamp();
 
@@ -33,12 +31,15 @@ impl Content {
         }
     }
 
-    pub async fn create(pool: &sqlx::SqlitePool, new_content: &ContentDto) -> Result<i64, sqlx::Error> {
+    pub async fn create(
+        pool: &sqlx::SqlitePool,
+        new_content: &Content,
+    ) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query(
             "INSERT INTO contents (
                 name, original_title, type_id, publication_date, notes, created_at, updated_at
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&new_content.name)
         .bind(&new_content.original_title)
@@ -53,12 +54,10 @@ impl Content {
     }
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Content>, sqlx::Error> {
-        let content = sqlx::query_as::<_, Content>(
-            "SELECT * FROM contents WHERE id = ?"
-        )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?;
+        let content = sqlx::query_as::<_, Content>("SELECT * FROM contents WHERE id = ?")
+            .bind(id)
+            .fetch_optional(pool)
+            .await?;
         Ok(content)
     }
 
@@ -83,25 +82,24 @@ impl Content {
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query(
-            "DELETE FROM contents WHERE id = ?"
-        )
-        .bind(id)
-        .execute(pool)
-        .await?;
+        let result = sqlx::query("DELETE FROM contents WHERE id = ?")
+            .bind(id)
+            .execute(pool)
+            .await?;
         Ok(result.rows_affected())
     }
 
     pub async fn list_all(pool: &sqlx::SqlitePool) -> Result<Vec<Content>, sqlx::Error> {
-        let all = sqlx::query_as::<_, Content>(
-            "SELECT * FROM contents ORDER BY name"
-        )
-        .fetch_all(pool)
-        .await?;
+        let all = sqlx::query_as::<_, Content>("SELECT * FROM contents ORDER BY name")
+            .fetch_all(pool)
+            .await?;
         Ok(all)
     }
 
-    pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Content>, sqlx::Error> {
+    pub async fn search(
+        pool: &sqlx::SqlitePool,
+        pattern: &str,
+    ) -> Result<Vec<Content>, sqlx::Error> {
         let search_pattern = format!("%{}%", pattern);
         let found = sqlx::query_as::<_, Content>(
             "SELECT * FROM contents WHERE name LIKE ? OR original_title LIKE ? OR notes LIKE ? ORDER BY name"

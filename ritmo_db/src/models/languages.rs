@@ -43,15 +43,13 @@ impl RunningLanguages {
         Ok(result.last_insert_rowid())
     }
 
+    /// questi sono 2 placeholder
     pub fn from_dto(dto: &LanguageDto) -> Self {
-        let mut language = Self::new();
-        language = Self::set_language_data(dto);
-        language
+        Self::set_language_data(dto)
     }
 
-    pub fn set_language_data(dto: &LanguageDto) -> RunningLanguages {
-        let k = RunningLanguages::new();
-        k
+    pub fn set_language_data(_dto: &LanguageDto) -> RunningLanguages {
+        RunningLanguages::new()
     }
 
     pub async fn get(

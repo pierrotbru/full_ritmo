@@ -1,0 +1,18 @@
+[package]
+name = "ritmo_db_core"
+version = "0.1.0"
+edition = "2021"
+authors = ["pierrotbru"]
+description = "Database infrastructure layer for Ritmo application"
+
+[dependencies]
+sqlx = { workspace = true, features = [
+    "runtime-tokio",
+    "sqlite",
+    "chrono",
+    "migrate",
+] }
+tokio = { workspace = true, features = ["full"] }
+chrono = { workspace = true }
+ritmo_errors = { path = "../ritmo_errors" }
+tracing = "0.1"

@@ -3,7 +3,7 @@ members = [
     "ritmo_core", # Logica principale e gestione ebook
     #    "ritmo_gui",       # Interfaccia grafica
     #    "ritmo_cli",       # Interfaccia command-line
-    "ritmo_db", # Gestione database e metadata
+    "ritmo_db", "ritmo_db_core", # Gestione database e metadata
     #    "ritmo_formats",   # Supporto formati (EPUB, PDF, MOBI, etc.)
     #    "ritmo_search",    # Sistema di ricerca e indicizzazione
     #    "ritmo_sync",      # Sincronizzazione e backup

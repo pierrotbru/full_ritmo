@@ -1,6 +1,5 @@
-use ritmo_core::{BookDto, ContentDto};
+use super::FullBook;
 use sqlx::FromRow;
-
 #[derive(Debug, Clone, FromRow, PartialEq, Eq)]
 pub struct BookContent {
     pub book_id: i64,
@@ -8,23 +7,10 @@ pub struct BookContent {
 }
 
 impl BookContent {
-    pub fn from_dto(bookdto: &mut BookDto, contentdto: &ContentDto) -> Option<Self> {
-        let book_id = bookdto.id?;
-        let content_id = contentdto.id?;
-
-        Some(Self {
-            book_id,
-            content_id,
-        })
-    }
-
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        new_link: &BookContent,
-    ) -> Result<(), sqlx::Error> {
+    pub async fn create(pool: &sqlx::SqlitePool, new_link: &FullBook) -> Result<(), sqlx::Error> {
         sqlx::query("INSERT INTO books_contents (book_id, content_id) VALUES (?, ?)")
-            .bind(new_link.book_id)
-            .bind(new_link.content_id)
+            .bind(new_link.book_content.book_id)
+            .bind(new_link.book_content.content_id)
             .execute(pool)
             .await?;
         Ok(())

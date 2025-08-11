@@ -2,7 +2,7 @@ use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
 pub struct Serie {
-    pub id: i64,
+    pub id: Option<i64>,
     pub name: String,
     pub description: Option<String>,
     pub total_books: Option<i64>,
