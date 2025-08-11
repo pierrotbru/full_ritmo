@@ -112,7 +112,7 @@ impl Database {
     }
 
     /// Restituisce un riferimento al pool di connessioni
-    pub fn pool(&self) -> &Pool<Sqlite> {
+    pub fn get_pool(&self) -> &Pool<Sqlite> {
         &self.pool
     }
 

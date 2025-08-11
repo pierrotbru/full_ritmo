@@ -1,3 +1,4 @@
+use sha2::Digest;
 use chrono::Utc;
 use ritmo_core::dto::BookDto;
 use sqlx::FromRow;
@@ -117,10 +118,54 @@ impl Book {
         Ok(found)
     }
 
-    /// questo è in placeholder per la routine che dovrà calcolare questi valori. I valori appartengono a Book, non sono necessariamente noti a livello superiore
     pub fn set_book_persistence(&mut self) {
-        self.file_link = Some("ab/cb/abcdefghijklmnopqrstuvwxyz0123456789012345678901".to_string());
-        self.file_size = Some(100000);
-        self.file_hash = Some("abcdefghijklmnopqrstuvwxyz0123456789012345678901".to_string());
+        // Generiamo un hash basato sui metadati del libro
+        let mut hasher = sha2::Sha256::new();
+        
+        // Aggiungiamo i metadati essenziali per generare un hash unico
+        hasher.update(self.name.as_bytes());
+        
+        if let Some(ref title) = self.original_title {
+            hasher.update(title.as_bytes());
+        }
+        
+        if let Some(ref isbn) = self.isbn {
+            hasher.update(isbn.as_bytes());
+        }
+        
+        // Aggiungiamo la data di creazione per ulteriore unicità
+        hasher.update(self.created_at.to_be_bytes());
+        
+        // Per libri di una serie, aggiungiamo anche queste informazioni
+        if let Some(series_id) = self.series_id {
+            hasher.update(series_id.to_be_bytes());
+            
+            if let Some(index) = self.series_index {
+                hasher.update(index.to_be_bytes());
+            }
+        }
+        
+        // Generiamo il hash completo
+        let hash_result = hasher.finalize();
+        
+        // Prendiamo i primi 16 byte dell'hash (128 bit) per un identificativo conciso ma unico
+        let hash_bytes = &hash_result[..16];
+        let hash_hex = hex::encode(hash_bytes);
+        
+        // Memorizziamo l'hash generato
+        self.file_hash = Some(hash_hex.clone());
+        
+        // Generiamo un percorso file standardizzato basato sull'hash
+        // Assumiamo come formato default "epub" per i nuovi libri
+        let file_path = format!("books/{}/{}/{}.epub", 
+                               &hash_hex[0..2],     // Primi 2 caratteri per la prima directory
+                               &hash_hex[2..4],     // Successivi 2 caratteri per la sottodirectory
+                               hash_hex);           // Nome file basato sull'hash completo
+        
+        // Impostiamo il link al file
+        self.file_link = Some(file_path);
+        
+        // Per ora il file size è 0 perché il file non è stato ancora effettivamente creato
+        self.file_size = Some(0);
     }
 }

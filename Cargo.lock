@@ -1106,10 +1106,12 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "chrono",
+ "hex",
  "ritmo_core",
  "ritmo_db_core",
  "ritmo_errors",
  "serde",
+ "sha2",
  "sqlx",
  "tempfile",
  "tokio",
@@ -1122,6 +1124,7 @@ dependencies = [
  "chrono",
  "ritmo_errors",
  "sqlx",
+ "tempfile",
  "tokio",
  "tracing",
 ]

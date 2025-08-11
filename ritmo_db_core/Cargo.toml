@@ -16,3 +16,7 @@ tokio = { workspace = true, features = ["full"] }
 chrono = { workspace = true }
 ritmo_errors = { path = "../ritmo_errors" }
 tracing = "0.1"
+
+[dev-dependencies]
+tokio = { version = "1", features = ["full"] }
+tempfile = "3.3"

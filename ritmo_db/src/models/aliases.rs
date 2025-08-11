@@ -12,7 +12,7 @@ pub struct Alias {
 }
 
 impl Alias {
-    /// placeholdeer
+    /// placeholder
     pub fn from_dto(_dto: &mut AliasDto) -> Self {
         Alias::default()
     }
