@@ -1,4 +1,4 @@
-use sqlx::{Pool, Sqlite, query_as};
+use sqlx::{Pool, Sqlite, query_as, query};
 use ritmo_errors::{RitmoErr, RitmoResult};
 
 /// Verifica l'integrità del database

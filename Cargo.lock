@@ -1107,6 +1107,7 @@ dependencies = [
  "anyhow",
  "chrono",
  "ritmo_core",
+ "ritmo_db_core",
  "ritmo_errors",
  "serde",
  "sqlx",

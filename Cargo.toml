@@ -3,7 +3,8 @@ members = [
     "ritmo_core", # Logica principale e gestione ebook
     #    "ritmo_gui",       # Interfaccia grafica
     #    "ritmo_cli",       # Interfaccia command-line
-    "ritmo_db", "ritmo_db_core", # Gestione database e metadata
+    "ritmo_db",
+    "ritmo_db_core", # Gestione database e metadata
     #    "ritmo_formats",   # Supporto formati (EPUB, PDF, MOBI, etc.)
     #    "ritmo_search",    # Sistema di ricerca e indicizzazione
     #    "ritmo_sync",      # Sincronizzazione e backup
@@ -20,6 +21,7 @@ serde_json = "1.0.141"
 serde = "1.0.219"
 sqlx = { version = "0.8.6", features = ["runtime-tokio-rustls", "sqlite"] }
 tokio = { version = "1.46.1", features = ["full"] }
+chrono = "0.4.41"
 
 [workspace.package]
 version = "0.1.0"
