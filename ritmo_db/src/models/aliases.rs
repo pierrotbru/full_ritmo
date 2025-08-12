@@ -19,24 +19,27 @@ impl Alias {
 
     pub async fn create(pool: &sqlx::SqlitePool, new_alias: &Alias) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
-        let result = sqlx::query(
-            "INSERT INTO aliases (name, person_id, alias_normalized, created_at) VALUES (?, ?, ?, ?)"
+        let result = sqlx::query!(
+            "INSERT INTO aliases (name, person_id, alias_normalized, created_at) VALUES (?, ?, ?, ?)",
+            new_alias.name,
+            new_alias.person_id, // Assumendo che person_id sia già Option<i64>
+            new_alias.alias_normalized,
+            now
         )
-        .bind(&new_alias.name)
-        .bind(None::<i64>)
-        .bind(&new_alias.alias_normalized)
-        .bind(now)
         .execute(pool)
         .await?;
+
         Ok(result.last_insert_rowid())
     }
-
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Alias>, sqlx::Error> {
-        let alias = sqlx::query_as::<_, Alias>("SELECT * FROM aliases WHERE id = ?")
-            .bind(id)
-            .fetch_optional(pool)
-            .await?;
-        Ok(alias)
+        let alias = sqlx::query_as!(
+            Alias,
+            "SELECT * FROM aliases WHERE id = ?",
+            id
+        )
+        .fetch_optional(pool)
+        .await?;        
+    Ok(alias)
     }
 
     pub async fn get_by_person_and_name(
@@ -44,32 +47,36 @@ impl Alias {
         person_id: i64,
         name: &str,
     ) -> Result<Option<Alias>, sqlx::Error> {
-        let alias =
-            sqlx::query_as::<_, Alias>("SELECT * FROM aliases WHERE person_id = ? AND name = ?")
-                .bind(person_id)
-                .bind(name)
-                .fetch_optional(pool)
-                .await?;
+        let alias = sqlx::query_as!(
+            Alias,
+            "SELECT * FROM aliases WHERE person_id = ? AND name = ?",
+            person_id,
+            name,
+            )
+            .fetch_optional(pool)
+            .await?;
         Ok(alias)
     }
 
     pub async fn update(&self, pool: &sqlx::SqlitePool) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query(
-            "UPDATE aliases SET name = ?, person_id = ?, alias_normalized = ?, confidence = ? WHERE id = ?"
-        )
-        .bind(&self.name)
-        .bind(self.person_id)
-        .bind(&self.alias_normalized)
-        .bind(self.confidence)
-        .bind(self.id)
+        let result = sqlx::query!(
+            "UPDATE aliases SET name = ?, person_id = ?, alias_normalized = ?, confidence = ? WHERE id = ?", 
+            self.name,
+            self.person_id,
+            self.alias_normalized,
+            self.confidence,
+            self.id
+            )
         .execute(pool)
         .await?;
         Ok(result.rows_affected())
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query("DELETE FROM aliases WHERE id = ?")
-            .bind(id)
+        let result = sqlx::query!(
+            "DELETE FROM aliases WHERE id = ?",
+            id,
+            )
             .execute(pool)
             .await?;
         Ok(result.rows_affected())
@@ -79,21 +86,24 @@ impl Alias {
         pool: &sqlx::SqlitePool,
         person_id: i64,
     ) -> Result<Vec<Alias>, sqlx::Error> {
-        let aliases =
-            sqlx::query_as::<_, Alias>("SELECT * FROM aliases WHERE person_id = ? ORDER BY name")
-                .bind(person_id)
-                .fetch_all(pool)
-                .await?;
+        let aliases = sqlx::query_as!(
+            Alias,
+            "SELECT * FROM aliases WHERE person_id = ? ORDER BY name",
+            person_id,
+            )
+            .fetch_all(pool)
+            .await?;
         Ok(aliases)
     }
 
     pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Alias>, sqlx::Error> {
         let search_pattern = format!("%{}%", pattern);
-        let aliases = sqlx::query_as::<_, Alias>(
+        let aliases = sqlx::query_as!(
+            Alias,
             "SELECT * FROM aliases WHERE name LIKE ? OR alias_normalized LIKE ? ORDER BY name",
-        )
-        .bind(&search_pattern)
-        .bind(&search_pattern)
+            search_pattern,
+            search_pattern
+            )
         .fetch_all(pool)
         .await?;
         Ok(aliases)

@@ -53,7 +53,7 @@ impl Database {
     /// Configura SQLite per prestazioni ottimali
     async fn configure_sqlite(pool: &SqlitePool) -> RitmoResult<()> {
         // Abilita foreign keys (importante per integrità referenziale)
-        sqlx::query("PRAGMA foreign_keys = ON")
+        sqlx::query!("PRAGMA foreign_keys = ON")
             .execute(pool)
             .await
             .map_err(|e| RitmoErr::DatabaseConnectionFailed(
@@ -69,7 +69,7 @@ impl Database {
             ))?;
 
         // Configura sincronizzazione
-        sqlx::query("PRAGMA synchronous = NORMAL")
+        sqlx::query!("PRAGMA synchronous = NORMAL")
             .execute(pool)
             .await
             .map_err(|e| RitmoErr::DatabaseConnectionFailed(
@@ -157,7 +157,7 @@ impl Database {
         };
 
         // Prova a caricare i metadati esistenti usando query_as!
-        let existing_metadata = sqlx::query(
+        let existing_metadata = sqlx::query!(
             "SELECT version, created_at, updated_at FROM metadata ORDER BY created_at DESC LIMIT 1"
         )
         .fetch_optional(pool)
@@ -176,12 +176,12 @@ impl Database {
                 
                 // Aggiorna l'updated_at timestamp
                 let now = Utc::now().timestamp();
-                sqlx::query(
-                    "UPDATE database_metadata SET updated_at = ?1 WHERE version = ?2 AND created_at = ?3"
-                )
-                .bind(now)
-                .bind(&metadata.version)
-                .bind(metadata.created_at)
+                sqlx::query!(
+                    "UPDATE metadata SET updated_at = ?1 WHERE version = ?2 AND created_at = ?3",
+                    now,
+                    metadata.version,
+                    metadata.created_at
+                    )
                 .execute(pool)
                 .await
                 .map_err(|e| RitmoErr::DatabaseConnectionFailed(
@@ -365,10 +365,13 @@ impl Database {
         }
 
         // Journal mode
-//        if let Ok(row) = sqlx::query!("PRAGMA journal_mode").fetch_one(&self.pool).await {
-//            stats.insert("journal_mode".to_string(), serde_json::Value::from(row.journal_mode));
-//        }
-
+        if let Ok(row) = sqlx::query(
+            "PRAGMA journal_mode"
+            )
+            .fetch_one(&self.pool)
+            .await {
+                stats.insert("journal_mode".to_string(), serde_json::Value::from(row.journal_mode));
+            }
         Ok(stats)
     }
 

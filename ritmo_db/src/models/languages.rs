@@ -31,13 +31,15 @@ impl RunningLanguages {
     ) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result =
-            sqlx::query("INSERT INTO running_languages (name, language_role, iso_code_2_char, iso_code_3char, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)")
-                .bind(&new_lang.name)
-                .bind(&new_lang.role)
-                .bind(&new_lang.iso_code_2char)
-                .bind(&new_lang.iso_code_3char)
-                .bind(now)
-                .bind(now)
+            sqlx::query!(
+                "INSERT INTO running_languages (name, language_role, iso_code_2_char, iso_code_3char, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                new_lang.name,
+                new_lang.role,
+                new_lang.iso_code_2char,
+                new_lang.iso_code_3char,
+                now,
+                now
+                )
                 .execute(pool)
                 .await?;
         Ok(result.last_insert_rowid())
