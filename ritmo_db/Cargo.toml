@@ -14,6 +14,7 @@ ritmo_core = { path = "../ritmo_core" }
 ritmo_db_core = { path = "../ritmo_db_core" }
 sha2 = "0.10.9"
 hex = "0.4.3"
+toml = { workspace = true }
 
 # Aggiungi questa sezione se non è già presente
 [[example]]
