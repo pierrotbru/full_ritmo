@@ -9,24 +9,23 @@ pub struct Format {
 }
 
 impl Format {
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<i64, sqlx::Error> {
-        let result = sqlx::query("INSERT INTO formats (name, description) VALUES (?, ?)")
-            .bind(name)
-            .bind(description)
+    pub async fn create(&self, pool: &sqlx::SqlitePool ) -> Result<i64, sqlx::Error> {
+        let result = sqlx::query!(
+                "INSERT INTO formats (name, description) VALUES (?, ?)",
+                self.name,
+                self.description
+            )
             .execute(pool)
             .await?;
         Ok(result.last_insert_rowid())
     }
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Format>, sqlx::Error> {
-        let result = sqlx::query_as::<_, Format>(
+        let result = sqlx::query_as!(
+            Format,
             "SELECT id, name, description, created_at FROM formats WHERE id = ?",
+            id
         )
-        .bind(id)
         .fetch_optional(pool)
         .await?;
         Ok(result)
@@ -38,18 +37,22 @@ impl Format {
         name: &str,
         description: Option<&str>,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE formats SET name = ?, description = ? WHERE id = ?")
-            .bind(name)
-            .bind(description)
-            .bind(id)
+        sqlx::query!(
+            "UPDATE formats SET name = ?, description = ? WHERE id = ?",
+            name,
+            description,
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM formats WHERE id = ?")
-            .bind(id)
+        sqlx::query!(
+            "DELETE FROM formats WHERE id = ?",
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())

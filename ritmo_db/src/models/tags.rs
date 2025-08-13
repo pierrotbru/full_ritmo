@@ -7,17 +7,17 @@ pub struct Tag {
     pub id: Option<i64>,
     pub name: String,
     pub created_at: Option<i64>,
-    pub updated_at: Option<i64>,
 }
 
 impl Tag {
-    pub async fn create(pool: &sqlx::SqlitePool, name: &str) -> Result<i64, sqlx::Error> {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result =
-            sqlx::query("INSERT INTO tags (name, created_at, updated_at) VALUES (?, ?, ?)")
-                .bind(name)
-                .bind(Some(now))
-                .bind(Some(now))
+            sqlx::query!(
+                "INSERT INTO tags (name, created_at) VALUES (?, ?)",
+                self.name,
+                now
+                )
                 .execute(pool)
                 .await?;
         Ok(result.last_insert_rowid())
@@ -30,34 +30,36 @@ impl Tag {
             id: None,
             name: content_dto.name.clone(),
             created_at: Some(now),
-            updated_at: Some(now),
         }
     }
 
     pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Tag>, sqlx::Error> {
-        let result = sqlx::query_as::<_, Tag>(
-            "SELECT id, name, created_at, updated_at FROM tags WHERE id = ?",
+        let result = sqlx::query_as!(
+            Tag,
+            "SELECT id, name, created_at FROM tags WHERE id = ?",
+            id
         )
-        .bind(id)
         .fetch_optional(pool)
         .await?;
         Ok(result)
     }
 
     pub async fn update(pool: &sqlx::SqlitePool, id: i64, name: &str) -> Result<(), sqlx::Error> {
-        let now = chrono::Utc::now().timestamp();
-        sqlx::query("UPDATE tags SET name = ?, updated_at = ? WHERE id = ?")
-            .bind(name)
-            .bind(now)
-            .bind(id)
+        sqlx::query!(
+            "UPDATE tags SET name = ? WHERE id = ?",
+            name,
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM tags WHERE id = ?")
-            .bind(id)
+        sqlx::query!(
+            "DELETE FROM tags WHERE id = ?",
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())

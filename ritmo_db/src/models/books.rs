@@ -51,7 +51,7 @@ impl Book {
         book
     }
 
-    pub async fn create(pool: &sqlx::SqlitePool, new_book: &Book) -> Result<i64, sqlx::Error> {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query!(
             "INSERT INTO books (
@@ -59,21 +59,21 @@ impl Book {
                 publication_date, last_modified_date, isbn, notes,
                 has_cover, has_paper, file_link, file_size, file_hash, created_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
-            new_book.name,
-            new_book.original_title,
-            new_book.publisher_id,
-            new_book.format_id,
-            new_book.series_id,
-            new_book.series_index,
-            new_book.publication_date,
+            self.name,
+            self.original_title,
+            self.publisher_id,
+            self.format_id,
+            self.series_id,
+            self.series_index,
+            self.publication_date,
             now,
-            new_book.isbn,
-            new_book.notes,
-            new_book.has_cover,
-            new_book.has_paper,
-            new_book.file_link,
-            new_book.file_size,
-            new_book.file_hash,
+            self.isbn,
+            self.notes,
+            self.has_cover,
+            self.has_paper,
+            self.file_link,
+            self.file_size,
+            self.file_hash,
             now
             )
         .execute(pool)

@@ -16,7 +16,7 @@ pub async fn check_integrity(pool: &Pool<Sqlite>) -> RitmoResult<bool> {
     // Verifica la presenza delle tabelle principali
     let _tables_exist = query(
         "SELECT count(*) FROM sqlite_master WHERE type='table' AND
-         name IN ('books', 'authors', 'tags')"
+         name IN ('books', 'people', 'contents')"
     )
     .fetch_one(pool)
     .await

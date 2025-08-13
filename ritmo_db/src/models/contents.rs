@@ -31,20 +31,17 @@ impl Content {
         }
     }
 
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        new_content: &Content,
-    ) -> Result<i64, sqlx::Error> {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query!(
             "INSERT INTO contents (
                 name, original_title, type_id, publication_date, notes, created_at, updated_at
             ) VALUES (?, ?, ?, ?, ?, ?, ?)",
-            new_content.name,
-            new_content.original_title,
-            new_content.type_id,
-            new_content.publication_date,
-            new_content.notes,
+            self.name,
+            self.original_title,
+            self.type_id,
+            self.publication_date,
+            self.notes,
             now,
             now
             )

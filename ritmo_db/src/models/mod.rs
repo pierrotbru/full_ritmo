@@ -61,7 +61,7 @@ pub struct FullBook {
     pub people: Person,
     pub publishers: Publisher,
     pub roles: Role,
-    pub series: Serie,
+    pub series: Series,
     pub tags: Tag,
     pub types: Type,
 }

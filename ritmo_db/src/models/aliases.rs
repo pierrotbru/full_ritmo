@@ -17,13 +17,13 @@ impl Alias {
         Alias::default()
     }
 
-    pub async fn create(pool: &sqlx::SqlitePool, new_alias: &Alias) -> Result<i64, sqlx::Error> {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
         let result = sqlx::query!(
             "INSERT INTO aliases (name, person_id, alias_normalized, created_at) VALUES (?, ?, ?, ?)",
-            new_alias.name,
-            new_alias.person_id, // Assumendo che person_id sia già Option<i64>
-            new_alias.alias_normalized,
+            self.name,
+            self.person_id, // Assumendo che person_id sia già Option<i64>
+            self.alias_normalized,
             now
         )
         .execute(pool)

@@ -1,3 +1,5 @@
+use sqlx::SqlitePool;
+use ritmo_errors::RitmoResult;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
@@ -9,14 +11,12 @@ pub struct Type {
 }
 
 impl Type {
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<i64, sqlx::Error> {
-        let rec = sqlx::query("INSERT INTO types (name, description) VALUES (?, ?)")
-            .bind(name)
-            .bind(description)
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
+        let rec = sqlx::query!(
+            "INSERT INTO types (name, description) VALUES (?, ?)",
+            self.name,
+            self.description
+            )
             .execute(pool)
             .await?;
         // Recupera l'ID appena inserito
@@ -24,34 +24,35 @@ impl Type {
         Ok(id)
     }
 
-    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Type>, sqlx::Error> {
-        let result = sqlx::query_as::<_, Type>(
+    pub async fn get(id: i64, pool: &SqlitePool) -> RitmoResult<Option<Self>> {
+        let result = sqlx::query_as!(
+            Self, // Qui usiamo Self invece di Type
             "SELECT id, name, description, created_at FROM types WHERE id = ?",
+            id
         )
-        .bind(id)
         .fetch_optional(pool)
         .await?;
+
         Ok(result)
     }
 
-    pub async fn update(
-        pool: &sqlx::SqlitePool,
-        id: i64,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE types SET name = ?, description = ? WHERE id = ?")
-            .bind(name)
-            .bind(description)
-            .bind(id)
+    pub async fn update(&self, pool: &sqlx::SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "UPDATE types SET name = ?, description = ? WHERE id = ?",
+            self.name,
+            self.description,
+            self.id
+            )
             .execute(pool)
             .await?;
         Ok(())
     }
 
-    pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM types WHERE id = ?")
-            .bind(id)
+    pub async fn delete(&self, pool: &sqlx::SqlitePool) -> Result<(), sqlx::Error> {
+        sqlx::query!(
+            "DELETE FROM types WHERE id = ?",
+            self.id
+            )
             .execute(pool)
             .await?;
         Ok(())

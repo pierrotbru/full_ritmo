@@ -1,3 +1,4 @@
+use ritmo_errors::RitmoResult;
 use ritmo_core::LanguageDto;
 use sqlx::FromRow;
 
@@ -25,18 +26,15 @@ impl RunningLanguages {
         }
     }
 
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        new_lang: &RunningLanguages,
-    ) -> Result<i64, sqlx::Error> {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> RitmoResult<i64> {
         let now = chrono::Utc::now().timestamp();
         let result =
             sqlx::query!(
-                "INSERT INTO running_languages (name, language_role, iso_code_2_char, iso_code_3char, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
-                new_lang.name,
-                new_lang.role,
-                new_lang.iso_code_2char,
-                new_lang.iso_code_3char,
+                "INSERT INTO running_languages (official_name, language_role, iso_code_2char, iso_code_3char, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)",
+                self.name,
+                self.role,
+                self.iso_code_2char,
+                self.iso_code_3char,
                 now,
                 now
                 )
@@ -45,7 +43,7 @@ impl RunningLanguages {
         Ok(result.last_insert_rowid())
     }
 
-    /// questi sono 2 placeholder
+    /// questi sono placeholder
     pub fn from_dto(dto: &LanguageDto) -> Self {
         Self::set_language_data(dto)
     }
@@ -55,34 +53,17 @@ impl RunningLanguages {
     }
 
     pub async fn get(
-        pool: &sqlx::SqlitePool,
-        id: i64,
-    ) -> Result<Option<RunningLanguages>, sqlx::Error> {
-        let result = sqlx::query_as::<_, RunningLanguages>(
-            "SELECT id, name, created_at, updated_at FROM tags WHERE id = ?",
-        )
-        .bind(id)
-        .fetch_optional(pool)
-        .await?;
-        Ok(result)
+        _pool: &sqlx::SqlitePool,
+        _id: i64,
+    ) -> RitmoResult<Option<RunningLanguages>> {
+        Ok(Some(RunningLanguages::new()))
     }
 
-    pub async fn update(pool: &sqlx::SqlitePool, id: i64, name: &str) -> Result<(), sqlx::Error> {
-        let now = chrono::Utc::now().timestamp();
-        sqlx::query("UPDATE tags SET name = ?, updated_at = ? WHERE id = ?")
-            .bind(name)
-            .bind(now)
-            .bind(id)
-            .execute(pool)
-            .await?;
+    pub async fn update(_pool: &sqlx::SqlitePool, _id: i64, _name: &str) -> RitmoResult<()> {
         Ok(())
     }
 
-    pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM tags WHERE id = ?")
-            .bind(id)
-            .execute(pool)
-            .await?;
+    pub async fn delete(_pool: &sqlx::SqlitePool, _id: i64) -> RitmoResult<()> {
         Ok(())
     }
 }

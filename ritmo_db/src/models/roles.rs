@@ -1,3 +1,4 @@
+use ritmo_errors::RitmoResult;
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
@@ -9,14 +10,12 @@ pub struct Role {
 }
 
 impl Role {
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<i64, sqlx::Error> {
-        let rec = sqlx::query("INSERT INTO roles (name, description) VALUES (?, ?)")
-            .bind(name)
-            .bind(description)
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
+        let rec = sqlx::query!(
+                "INSERT INTO roles (name, description) VALUES (?, ?)",
+                self.name,
+                self.description
+            )
             .execute(pool)
             .await?;
         // Recupera l'ID appena inserito
@@ -24,11 +23,12 @@ impl Role {
         Ok(id)
     }
 
-    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Role>, sqlx::Error> {
-        let result = sqlx::query_as::<_, Role>(
+    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> RitmoResult<Option<Role>> {
+        let result = sqlx::query_as!(
+            Role,
             "SELECT id, name, description, created_at FROM roles WHERE id = ?",
+            id
         )
-        .bind(id)
         .fetch_optional(pool)
         .await?;
         Ok(result)
@@ -40,18 +40,22 @@ impl Role {
         name: &str,
         description: Option<&str>,
     ) -> Result<(), sqlx::Error> {
-        sqlx::query("UPDATE roles SET name = ?, description = ? WHERE id = ?")
-            .bind(name)
-            .bind(description)
-            .bind(id)
+        sqlx::query!(
+            "UPDATE roles SET name = ?, description = ? WHERE id = ?",
+            name,
+            description,
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<(), sqlx::Error> {
-        sqlx::query("DELETE FROM roles WHERE id = ?")
-            .bind(id)
+        sqlx::query!(
+            "DELETE FROM roles WHERE id = ?",
+            id
+            )
             .execute(pool)
             .await?;
         Ok(())

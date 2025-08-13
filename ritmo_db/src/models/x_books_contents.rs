@@ -8,27 +8,14 @@ pub struct BookContent {
 
 impl BookContent {
     pub async fn create(pool: &sqlx::SqlitePool, new_link: &FullBook) -> Result<(), sqlx::Error> {
-        sqlx::query("INSERT INTO books_contents (book_id, content_id) VALUES (?, ?)")
-            .bind(new_link.book_content.book_id)
-            .bind(new_link.book_content.content_id)
+        sqlx::query!(
+            "INSERT INTO x_books_contents (book_id, content_id) VALUES (?, ?)",
+            new_link.book_content.book_id,
+            new_link.book_content.content_id
+            )
             .execute(pool)
             .await?;
         Ok(())
-    }
-
-    pub async fn get(
-        pool: &sqlx::SqlitePool,
-        book_id: i64,
-        content_id: i64,
-    ) -> Result<Option<BookContent>, sqlx::Error> {
-        let link = sqlx::query_as::<_, BookContent>(
-            "SELECT * FROM books_contents WHERE book_id = ? AND content_id = ?",
-        )
-        .bind(book_id)
-        .bind(content_id)
-        .fetch_optional(pool)
-        .await?;
-        Ok(link)
     }
 
     pub async fn delete(
@@ -36,9 +23,11 @@ impl BookContent {
         book_id: i64,
         content_id: i64,
     ) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query("DELETE FROM books_contents WHERE book_id = ? AND content_id = ?")
-            .bind(book_id)
-            .bind(content_id)
+        let result = sqlx::query!(
+            "DELETE FROM x_books_contents WHERE book_id = ? AND content_id = ?",
+            book_id,
+            content_id
+            )
             .execute(pool)
             .await?;
         Ok(result.rows_affected())
@@ -49,8 +38,11 @@ impl BookContent {
         book_id: i64,
     ) -> Result<Vec<BookContent>, sqlx::Error> {
         let links =
-            sqlx::query_as::<_, BookContent>("SELECT * FROM books_contents WHERE book_id = ?")
-                .bind(book_id)
+            sqlx::query_as!(
+                BookContent, 
+                "SELECT * FROM x_books_contents WHERE book_id = ?",
+                book_id
+                )
                 .fetch_all(pool)
                 .await?;
         Ok(links)
@@ -61,8 +53,11 @@ impl BookContent {
         content_id: i64,
     ) -> Result<Vec<BookContent>, sqlx::Error> {
         let links =
-            sqlx::query_as::<_, BookContent>("SELECT * FROM books_contents WHERE content_id = ?")
-                .bind(content_id)
+            sqlx::query_as!(
+                BookContent, 
+                "SELECT * FROM x_books_contents WHERE content_id = ?",
+                content_id
+                )
                 .fetch_all(pool)
                 .await?;
         Ok(links)

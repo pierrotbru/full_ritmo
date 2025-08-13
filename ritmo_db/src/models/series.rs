@@ -1,7 +1,7 @@
 use sqlx::FromRow;
 
 #[derive(Debug, Clone, FromRow)]
-pub struct Serie {
+pub struct Series {
     pub id: Option<i64>,
     pub name: String,
     pub description: Option<String>,
@@ -11,39 +11,30 @@ pub struct Serie {
     pub updated_at: i64,
 }
 
-#[derive(Debug)]
-pub struct NewSeries {
-    pub name: String,
-    pub description: Option<String>,
-    pub total_books: Option<i64>,
-    pub completed: Option<i64>,
-}
-
-impl Serie {
-    pub async fn create(
-        pool: &sqlx::SqlitePool,
-        new_series: &NewSeries,
-    ) -> Result<i64, sqlx::Error> {
+impl Series {
+    pub async fn save(&self, pool: &sqlx::SqlitePool) -> Result<i64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
-        let completed = new_series.completed.unwrap_or(0);
-        let result = sqlx::query(
+        let result = sqlx::query!(
             "INSERT INTO series (name, description, total_books, completed, created_at, updated_at)
              VALUES (?, ?, ?, ?, ?, ?)",
+            self.name,
+            self.description,
+            self.total_books,
+            self.completed,
+            now,
+            now
         )
-        .bind(&new_series.name)
-        .bind(&new_series.description)
-        .bind(&new_series.total_books)
-        .bind(completed)
-        .bind(now)
-        .bind(now)
         .execute(pool)
         .await?;
         Ok(result.last_insert_rowid())
     }
 
-    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Serie>, sqlx::Error> {
-        let series = sqlx::query_as::<_, Serie>("SELECT * FROM series WHERE id = ?")
-            .bind(id)
+    pub async fn get(pool: &sqlx::SqlitePool, id: i64) -> Result<Option<Series>, sqlx::Error> {
+        let series = sqlx::query_as!(
+            Series,
+            "SELECT * FROM series WHERE id = ?",
+            id
+            )
             .fetch_optional(pool)
             .await?;
         Ok(series)
@@ -52,9 +43,12 @@ impl Serie {
     pub async fn get_by_name(
         pool: &sqlx::SqlitePool,
         name: &str,
-    ) -> Result<Option<Serie>, sqlx::Error> {
-        let series = sqlx::query_as::<_, Serie>("SELECT * FROM series WHERE name = ?")
-            .bind(name)
+    ) -> Result<Option<Series>, sqlx::Error> {
+        let series = sqlx::query_as!(
+            Series,
+            "SELECT * FROM series WHERE name = ?",
+            name
+            )
             .fetch_optional(pool)
             .await?;
         Ok(series)
@@ -62,42 +56,48 @@ impl Serie {
 
     pub async fn update(&self, pool: &sqlx::SqlitePool) -> Result<u64, sqlx::Error> {
         let now = chrono::Utc::now().timestamp();
-        let result = sqlx::query(
-            "UPDATE series SET name = ?, description = ?, total_books = ?, completed = ?, updated_at = ? WHERE id = ?"
+        let result = sqlx::query!(
+            "UPDATE series SET name = ?, description = ?, total_books = ?, completed = ?, updated_at = ? WHERE id = ?",
+            self.name,
+            self.description,
+            self.total_books,
+            self.completed,
+            now,
+            self.id
         )
-        .bind(&self.name)
-        .bind(&self.description)
-        .bind(&self.total_books)
-        .bind(self.completed)
-        .bind(now)
-        .bind(self.id)
         .execute(pool)
         .await?;
         Ok(result.rows_affected())
     }
 
     pub async fn delete(pool: &sqlx::SqlitePool, id: i64) -> Result<u64, sqlx::Error> {
-        let result = sqlx::query("DELETE FROM series WHERE id = ?")
-            .bind(id)
+        let result = sqlx::query!(
+            "DELETE FROM series WHERE id = ?",
+            id
+            )
             .execute(pool)
             .await?;
         Ok(result.rows_affected())
     }
 
-    pub async fn list_all(pool: &sqlx::SqlitePool) -> Result<Vec<Serie>, sqlx::Error> {
-        let all = sqlx::query_as::<_, Serie>("SELECT * FROM series ORDER BY name")
+    pub async fn list_all(pool: &sqlx::SqlitePool) -> Result<Vec<Series>, sqlx::Error> {
+        let all = sqlx::query_as!(
+            Series,
+            "SELECT * FROM series ORDER BY name"
+            )
             .fetch_all(pool)
             .await?;
         Ok(all)
     }
 
-    pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Serie>, sqlx::Error> {
+    pub async fn search(pool: &sqlx::SqlitePool, pattern: &str) -> Result<Vec<Series>, sqlx::Error> {
         let search_pattern = format!("%{}%", pattern);
-        let found = sqlx::query_as::<_, Serie>(
+        let found = sqlx::query_as!(
+            Series,
             "SELECT * FROM series WHERE name LIKE ? OR description LIKE ? ORDER BY name",
+            search_pattern,
+            search_pattern
         )
-        .bind(&search_pattern)
-        .bind(&search_pattern)
         .fetch_all(pool)
         .await?;
         Ok(found)

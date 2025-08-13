@@ -95,7 +95,7 @@ impl Database {
     async fn verify_schema(pool: &SqlitePool) -> RitmoResult<()> {
         // Lista delle tabelle richieste con il loro tipo (table/view)
         let required_schema = [
-            ("database_metadata", "table"),
+            ("metadata", "table"),
             ("books", "table"),
             ("people", "table"),
             ("publishers", "table"),
@@ -158,7 +158,7 @@ impl Database {
 
         // Prova a caricare i metadati esistenti usando query_as!
         let existing_metadata = sqlx::query!(
-            "SELECT version, created_at, updated_at FROM metadata ORDER BY created_at DESC LIMIT 1"
+            "SELECT version, updated_at, created_at FROM metadata ORDER BY created_at DESC LIMIT 1"
         )
         .fetch_optional(pool)
         .await
@@ -169,11 +169,11 @@ impl Database {
         match existing_metadata {
             Some(row) => {
                 let metadata = DatabaseMetadata {
-                    version: row.get("version"),
-                    created_at: row.get("created_at"),
-                    updated_at: row.get("updated_at"),
+                    version: row.version,
+                    created_at: row.created_at,
+                    updated_at: row.updated_at
                 };
-                
+              
                 // Aggiorna l'updated_at timestamp
                 let now = Utc::now().timestamp();
                 sqlx::query!(
@@ -188,10 +188,7 @@ impl Database {
                     format!("Failed to update metadata timestamp: {}", e)
                 ))?;
 
-                Ok(DatabaseMetadata {
-                    updated_at: now,
-                    ..metadata
-                })
+                return Ok(metadata)
             }
             None => {
                 // Se non ci sono metadati, creane di nuovi
@@ -204,12 +201,12 @@ impl Database {
                     updated_at: now,
                 };
 
-                sqlx::query(
-                    "INSERT INTO database_metadata (version, created_at, updated_at) VALUES (?1, ?2, ?3)"
+                sqlx::query!(
+                    "INSERT INTO metadata (version, created_at, updated_at) VALUES (?1, ?2, ?3)",
+                    metadata.version,
+                    metadata.created_at,
+                    metadata.updated_at
                 )
-                .bind(&metadata.version)
-                .bind(metadata.created_at)
-                .bind(metadata.updated_at)
                 .execute(pool)
                 .await
                 .map_err(|e| RitmoErr::DatabaseConnectionFailed(
@@ -370,7 +367,8 @@ impl Database {
             )
             .fetch_one(&self.pool)
             .await {
-                stats.insert("journal_mode".to_string(), serde_json::Value::from(row.journal_mode));
+                let journal_mode: String = row.get(0);
+                stats.insert("journal_mode".to_string(), serde_json::Value::from(journal_mode));
             }
         Ok(stats)
     }

@@ -64,7 +64,6 @@ CREATE TABLE IF NOT EXISTS "tags" (
 	"id"	INTEGER,
 	"name"	TEXT NOT NULL UNIQUE,
 	"description"	TEXT,
-	"color"	TEXT,
 	"created_at"	INTEGER NOT NULL DEFAULT (strftime('%s', 'now')),
 	PRIMARY KEY("id" AUTOINCREMENT)
 );
@@ -163,16 +162,14 @@ CREATE TABLE IF NOT EXISTS "contents" (
 	PRIMARY KEY("id" AUTOINCREMENT),
 	FOREIGN KEY("type_id") REFERENCES "types"("id") ON DELETE SET NULL
 );
-CREATE TABLE IF NOT EXISTS "books_contents" (
+CREATE TABLE IF NOT EXISTS "x_books_contents" (
 	"book_id"	INTEGER NOT NULL,
 	"content_id"	INTEGER NOT NULL,
-	"page_start"	INTEGER,
-	"page_end"	INTEGER,
 	PRIMARY KEY("book_id","content_id"),
 	FOREIGN KEY("content_id") REFERENCES "contents"("id") ON DELETE CASCADE,
 	FOREIGN KEY("book_id") REFERENCES "books"("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "books_people_roles" (
+CREATE TABLE IF NOT EXISTS "x_books_people_roles" (
 	"book_id"	INTEGER NOT NULL,
 	"person_id"	INTEGER NOT NULL,
 	"role_id"	INTEGER NOT NULL,
@@ -181,14 +178,14 @@ CREATE TABLE IF NOT EXISTS "books_people_roles" (
 	FOREIGN KEY("person_id") REFERENCES "people"("id") ON DELETE CASCADE,
 	FOREIGN KEY("role_id") REFERENCES "roles"("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "books_tags" (
+CREATE TABLE IF NOT EXISTS "x_books_tags" (
 	"book_id"	INTEGER NOT NULL,
 	"tag_id"	INTEGER NOT NULL,
 	PRIMARY KEY("book_id","tag_id"),
 	FOREIGN KEY("book_id") REFERENCES "books"("id") ON DELETE CASCADE,
 	FOREIGN KEY("tag_id") REFERENCES "tags"("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "contents_people_roles" (
+CREATE TABLE IF NOT EXISTS "x_contents_people_roles" (
 	"content_id"	INTEGER NOT NULL,
 	"person_id"	INTEGER NOT NULL,
 	"role_id"	INTEGER NOT NULL,
@@ -197,14 +194,14 @@ CREATE TABLE IF NOT EXISTS "contents_people_roles" (
 	FOREIGN KEY("role_id") REFERENCES "roles"("id") ON DELETE CASCADE,
 	FOREIGN KEY("person_id") REFERENCES "people"("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "contents_tags" (
+CREATE TABLE IF NOT EXISTS "x_contents_tags" (
 	"content_id"	INTEGER NOT NULL,
 	"tag_id"	INTEGER NOT NULL,
 	PRIMARY KEY("content_id","tag_id"),
 	FOREIGN KEY("content_id") REFERENCES "contents"("id") ON DELETE CASCADE,
 	FOREIGN KEY("tag_id") REFERENCES "tags"("id") ON DELETE CASCADE
 );
-CREATE TABLE IF NOT EXISTS "contents_languages" (
+CREATE TABLE IF NOT EXISTS "x_contents_languages" (
 	"content_id"	INTEGER NOT NULL,
 	"language_id"	INTEGER NOT NULL,
 	PRIMARY KEY("content_id","language_id"),
@@ -213,8 +210,8 @@ CREATE TABLE IF NOT EXISTS "contents_languages" (
 );
 CREATE TABLE IF NOT EXISTS "metadata" (
 	"version"		TEXT NOT NULL,
-	"updated_at"  	INTEGER,
-	"created_at"	INTEGER,
+	"updated_at"  	INTEGER NOT NULL,
+	"created_at"	INTEGER NOT NULL,
 	PRIMARY KEY("version")
 );
 CREATE INDEX IF NOT EXISTS "idx_people_name_search" ON "people" (
@@ -303,39 +300,39 @@ CREATE INDEX IF NOT EXISTS "idx_contents_dates" ON "contents" (
 	"publication_date",
 	"created_at"
 );
-CREATE INDEX IF NOT EXISTS "idx_books_people_roles_person_role" ON "books_people_roles" (
+CREATE INDEX IF NOT EXISTS "idx_books_people_roles_person_role" ON "x_books_people_roles" (
 	"person_id",
 	"role_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_books_people_roles_book_lookup" ON "books_people_roles" (
+CREATE INDEX IF NOT EXISTS "idx_books_people_roles_book_lookup" ON "x_books_people_roles" (
 	"book_id",
 	"person_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_contents_people_roles_person_role" ON "contents_people_roles" (
+CREATE INDEX IF NOT EXISTS "idx_contents_people_roles_person_role" ON "x_contents_people_roles" (
 	"person_id",
 	"role_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_contents_people_roles_content_lookup" ON "contents_people_roles" (
+CREATE INDEX IF NOT EXISTS "idx_contents_people_roles_content_lookup" ON "x_contents_people_roles" (
 	"content_id",
 	"person_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_books_contents_junction" ON "books_contents" (
+CREATE INDEX IF NOT EXISTS "idx_books_contents_junction" ON "x_books_contents" (
 	"book_id",
 	"content_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_books_tags_lookup" ON "books_tags" (
+CREATE INDEX IF NOT EXISTS "idx_books_tags_lookup" ON "x_books_tags" (
 	"book_id",
 	"tag_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_contents_tags_lookup" ON "contents_tags" (
+CREATE INDEX IF NOT EXISTS "idx_contents_tags_lookup" ON "x_contents_tags" (
 	"content_id",
 	"tag_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_contents_languages_lookup" ON "contents_languages" (
+CREATE INDEX IF NOT EXISTS "idx_contents_languages_lookup" ON "x_contents_languages" (
 	"content_id",
 	"language_id"
 );
-CREATE INDEX IF NOT EXISTS "idx_contents_languages_by_language" ON "contents_languages" (
+CREATE INDEX IF NOT EXISTS "idx_contents_languages_by_language" ON "x_contents_languages" (
 	"language_id",
 	"content_id"
 );
@@ -513,7 +510,7 @@ FROM books b
 LEFT JOIN series s ON b.series_id = s.id
 WHERE b.id NOT IN (
     SELECT DISTINCT book_id
-    FROM books_people_roles bpr
+    FROM x_books_people_roles bpr
     JOIN roles r ON bpr.role_id = r.id
     WHERE r.name IN ('Autore', 'Author', 'Scrittore')
 );
@@ -528,7 +525,7 @@ FROM contents c
 LEFT JOIN types t ON c.type_id = t.id
 WHERE c.id NOT IN (
     SELECT DISTINCT content_id
-    FROM contents_people_roles cpr
+    FROM x_contents_people_roles cpr
     JOIN roles r ON cpr.role_id = r.id
     WHERE r.name IN ('Autore', 'Author', 'Scrittore')
 );
@@ -554,13 +551,13 @@ FROM books b
 LEFT JOIN series s ON b.series_id = s.id
 LEFT JOIN formats f ON b.format_id = f.id
 LEFT JOIN publishers pub ON b.publisher_id = pub.id
-LEFT JOIN books_people_roles bpr ON b.id = bpr.book_id
+LEFT JOIN x_books_people_roles bpr ON b.id = bpr.book_id
 LEFT JOIN people p ON bpr.person_id = p.id
 LEFT JOIN roles r ON bpr.role_id = r.id
 WHERE r.name IN ('Autore', 'Author', 'Scrittore')
    OR bpr.role_id = (
        SELECT MIN(role_id)
-       FROM books_people_roles
+       FROM x_books_people_roles
        WHERE book_id = b.id
    );
 CREATE VIEW ContentsSearchOptimized AS
@@ -577,13 +574,13 @@ SELECT
     c.updated_at
 FROM contents c
 LEFT JOIN types t ON c.type_id = t.id
-LEFT JOIN contents_people_roles cpr ON c.id = cpr.content_id
+LEFT JOIN x_contents_people_roles cpr ON c.id = cpr.content_id
 LEFT JOIN people p ON cpr.person_id = p.id
 LEFT JOIN roles r ON cpr.role_id = r.id
 WHERE r.name IN ('Autore', 'Author', 'Scrittore')
    OR cpr.role_id = (
        SELECT MIN(role_id)
-       FROM contents_people_roles
+       FROM x_contents_people_roles
        WHERE content_id = c.id
    );
 CREATE VIEW ContentsFullDetails AS
@@ -602,12 +599,12 @@ SELECT
     GROUP_CONCAT(DISTINCT rl.official_name || ' (' || rl.language_role || ')') AS language_info
 FROM contents c
 LEFT JOIN types t ON c.type_id = t.id
-LEFT JOIN contents_people_roles cpr ON c.id = cpr.content_id
+LEFT JOIN x_contents_people_roles cpr ON c.id = cpr.content_id
 LEFT JOIN people p ON cpr.person_id = p.id
 LEFT JOIN roles r ON cpr.role_id = r.id
-LEFT JOIN contents_tags ct ON c.id = ct.content_id
+LEFT JOIN x_contents_tags ct ON c.id = ct.content_id
 LEFT JOIN tags tag ON ct.tag_id = tag.id
-LEFT JOIN contents_languages cl ON c.id = cl.content_id
+LEFT JOIN x_contents_languages cl ON c.id = cl.content_id
 LEFT JOIN running_languages rl ON cl.language_id = rl.id
 GROUP BY c.id;
 CREATE VIEW BooksFullDetails AS
@@ -639,12 +636,12 @@ FROM books b
 LEFT JOIN publishers pub ON b.publisher_id = pub.id
 LEFT JOIN formats f ON b.format_id = f.id
 LEFT JOIN series s ON b.series_id = s.id
-LEFT JOIN books_people_roles bpr ON b.id = bpr.book_id
+LEFT JOIN x_books_people_roles bpr ON b.id = bpr.book_id
 LEFT JOIN people p ON bpr.person_id = p.id
 LEFT JOIN roles r ON bpr.role_id = r.id
-LEFT JOIN books_tags bt ON b.id = bt.book_id
+LEFT JOIN x_books_tags bt ON b.id = bt.book_id
 LEFT JOIN tags tag ON bt.tag_id = tag.id
-LEFT JOIN books_contents bc ON b.id = bc.book_id
+LEFT JOIN x_books_contents bc ON b.id = bc.book_id
 LEFT JOIN contents c ON bc.content_id = c.id
 GROUP BY b.id;
 CREATE VIEW StatsOverview AS
