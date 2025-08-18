@@ -150,6 +150,8 @@ impl Database {
             format!("Failed to check metadata table: {}", e)
         ))?;
 
+        dbg!(&table_exists);
+
         if table_exists.is_none() {
             return Err(RitmoErr::DatabaseConnectionFailed(
                 "metadata table not found. Database may not be properly initialized.".to_string()

@@ -1,7 +1,9 @@
 pub mod dto;
-//pub mod service;
-
+pub mod storage;
 pub use dto::*;
+pub use storage::create_storage_dirs;
+
+//pub mod service;
 
 //use std::fs;
 //use std::path::{Path, PathBuf};

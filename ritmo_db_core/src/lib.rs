@@ -1,13 +1,14 @@
-pub mod connection;
-pub mod maintenance;
 pub mod config;
-mod database;
-
-use std::fs;
-use std::path::{Path, PathBuf};
-use serde::{Deserialize, Serialize};
+pub mod connection;
+pub mod database;
+pub mod maintenance;
+pub mod library;
 
 pub use database::Database;
+pub use library::create_full_database_library;
+use serde::{Deserialize, Serialize};
+use std::fs;
+use std::path::{Path, PathBuf};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct LibraryConfig {
@@ -54,9 +55,11 @@ impl LibraryConfig {
     }
 
     /// Carica configurazione da file, crea default se non esiste
-    pub fn load_or_create<P: AsRef<Path>>(config_file: P) -> Result<Self, Box<dyn std::error::Error>> {
+    pub fn load_or_create<P: AsRef<Path>>(
+        config_file: P,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let path = config_file.as_ref();
-        
+
         if path.exists() {
             let content = fs::read_to_string(path)?;
             let config: Self = toml::from_str(&content)?;
@@ -101,6 +104,10 @@ impl LibraryConfig {
 
     pub fn canonical_bootstrap_path(&self) -> PathBuf {
         Self::canonicalize_path(&self.bootstrap_path)
+    }
+
+    pub fn canonical_portable_bootstrap_path(&self) -> PathBuf {
+        self.canonical_bootstrap_path().join("portable")
     }
 
     pub fn db_file_path(&self) -> PathBuf {
@@ -180,7 +187,10 @@ impl LibraryConfig {
         // Verifica template
         let template_path = self.template_db_path();
         if !template_path.exists() {
-            issues.push(format!("Template database non trovato: {}", template_path.display()));
+            issues.push(format!(
+                "Template database non trovato: {}",
+                template_path.display()
+            ));
         }
 
         // Verifica permissions (solo su sistemi Unix)
@@ -212,14 +222,17 @@ impl LibraryConfig {
         // Se il database non esiste, copialo dal template
         if !db_path.exists() {
             if template_path.exists() {
-                fs::copy(&template_path, &db_path)
-                    .map_err(|e| ritmo_errors::RitmoErr::DatabaseConnectionFailed(
-                        format!("Impossibile copiare template database: {}", e)
-                    ))?;
+                fs::copy(&template_path, &db_path).map_err(|e| {
+                    ritmo_errors::RitmoErr::DatabaseConnectionFailed(format!(
+                        "Impossibile copiare template database: {}",
+                        e
+                    ))
+                })?;
             } else {
-                return Err(ritmo_errors::RitmoErr::DatabaseConnectionFailed(
-                    format!("Template database non trovato: {}", template_path.display())
-                ));
+                return Err(ritmo_errors::RitmoErr::DatabaseConnectionFailed(format!(
+                    "Template database non trovato: {}",
+                    template_path.display()
+                )));
             }
         }
 
@@ -229,7 +242,7 @@ impl LibraryConfig {
     /// Crea un nuovo database da zero (per sviluppo/testing)
     pub async fn create_fresh_database(&self) -> Result<(), ritmo_errors::RitmoErr> {
         let db_path = self.db_file_path();
-        
+
         // Rimuovi database esistente se presente
         if db_path.exists() {
             fs::remove_file(&db_path)
@@ -242,13 +255,13 @@ impl LibraryConfig {
     fn normalize_db_path(path: &Path) -> String {
         let canonical = fs::canonicalize(path).unwrap_or_else(|_| path.to_path_buf());
         let path_str = canonical.to_str().unwrap_or("");
-        
+
         // Rimuovi prefissi Windows UNC se presenti
         let cleaned = path_str
             .strip_prefix(r"\\?\")
             .or_else(|| path_str.strip_prefix("//?/"))
             .unwrap_or(path_str);
-        
+
         // Normalizza separatori per SQLite
         cleaned.replace('\\', "/")
     }
@@ -256,10 +269,10 @@ impl LibraryConfig {
     pub async fn create_pool(&self) -> Result<sqlx::SqlitePool, ritmo_errors::RitmoErr> {
         let db_path = self.db_file_path();
         let normalized_path = Self::normalize_db_path(&db_path);
-        
+
         // Costruisci URL con opzioni
         let mut db_url = format!("sqlite://{}?mode=rwc", normalized_path);
-        
+
         // Aggiungi opzioni aggiuntive
         if self.auto_vacuum {
             db_url.push_str("&auto_vacuum=INCREMENTAL");
@@ -283,12 +296,14 @@ impl LibraryConfig {
     }
 
     /// Backup del database
-    pub async fn backup_database<P: AsRef<Path>>(&self, backup_path: P) -> Result<(), ritmo_errors::RitmoErr> {
+    pub async fn backup_database<P: AsRef<Path>>(
+        &self,
+        backup_path: P,
+    ) -> Result<(), ritmo_errors::RitmoErr> {
         let db_path = self.db_file_path();
-        fs::copy(&db_path, backup_path)
-            .map_err(|e| ritmo_errors::RitmoErr::DatabaseConnectionFailed(
-                format!("Backup fallito: {}", e)
-            ))?;
+        fs::copy(&db_path, backup_path).map_err(|e| {
+            ritmo_errors::RitmoErr::DatabaseConnectionFailed(format!("Backup fallito: {}", e))
+        })?;
         Ok(())
     }
 }
@@ -302,7 +317,7 @@ mod tests {
     fn test_new_config() {
         let temp_dir = TempDir::new().unwrap();
         let config = LibraryConfig::new(temp_dir.path());
-        
+
         assert_eq!(config.root_path, temp_dir.path());
         assert_eq!(config.db_filename, "ritmo.db");
         assert_eq!(config.max_db_connections, 10);
@@ -312,9 +327,9 @@ mod tests {
     fn test_initialize() {
         let temp_dir = TempDir::new().unwrap();
         let config = LibraryConfig::new(temp_dir.path());
-        
+
         config.initialize().unwrap();
-        
+
         assert!(config.validate().unwrap());
     }
 
@@ -322,10 +337,10 @@ mod tests {
     fn test_save_load_config() {
         let temp_dir = TempDir::new().unwrap();
         let config_file = temp_dir.path().join("config.toml");
-        
+
         let config = LibraryConfig::new(temp_dir.path());
         config.save(&config_file).unwrap();
-        
+
         let loaded_config = LibraryConfig::load_or_create(&config_file).unwrap();
         assert_eq!(config.root_path, loaded_config.root_path);
     }

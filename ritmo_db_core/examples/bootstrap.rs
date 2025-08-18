@@ -1,5 +1,4 @@
 use std::path::PathBuf;
-use ritmo_db_core::create_full_database_library;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
