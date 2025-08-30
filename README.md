@@ -21,20 +21,20 @@ I vari blocchi sono:
     Quando si crea un nuovo database, questo viene copiato dal template. Se il template per qualche motivo è corrotto
     o non valido, viene ricreato usando lo script.
     
-  3. **ritmo_db_core**
+  2. **ritmo_db_core**
 
     Questo è il basso livello del database.
   
-  4. **ritmo_core**
-  5. **ritmo_cli**
-  6. **ritmo_gui**
-  7. **ritmo_ml**
-  8. **ritmo_search**
-  9. **ritmo_errors**
+  3. **ritmo_core**
+  4. **ritmo_cli**
+  5. **ritmo_gui**
+  6. **ritmo_ml**
+  7. **ritmo_search**
+  8. **ritmo_errors**
      
     Questa è la utility degli errori del progetto.
   
-  11. **ebook_parser**
+  9. **ebook_parser**
 
     Il ebook_parser è la utility che serve a leggere i files epub ed a estrarne i dati necessari a memorizzre l'epub
     stesso: autore/i, titolo/i, titolo/i originale/i, editore, date, etc. Inizialmente questa utility era stata
