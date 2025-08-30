@@ -31,6 +31,8 @@ I vari blocchi sono:
   7. **ritmo_ml**
   8. **ritmo_search**
   9. **ritmo_errors**
+    Questa è la utility degli errori del progetto.
+  
   10. **ebook_parser**
 
     Il ebook_parser è la utility che serve a leggere i files epub ed a estrarne i dati necessari a memorizzre l'epub
