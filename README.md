@@ -33,4 +33,6 @@ I vari blocchi sono:
   9. **ritmo_errors**
   10. **ebook_parser**
 
-    Il ebook_parser è la utility che serve a leggere i files epub ed a estrarne i dati necessari a memorizzre l'epub stesso: autore/i, titolo/i, titolo/i originale/i, editore, date, etc. Inizialmente questa utility era stata scritta come un codice indipendente, ma poi ho pensato che fosse meglio integrarla nel software. 
+    Il ebook_parser è la utility che serve a leggere i files epub ed a estrarne i dati necessari a memorizzre l'epub
+    stesso: autore/i, titolo/i, titolo/i originale/i, editore, date, etc. Inizialmente questa utility era stata
+    scritta come un codice indipendente, ma poi ho pensato che fosse meglio integrarla nel software. 
