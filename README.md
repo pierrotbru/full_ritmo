@@ -19,7 +19,7 @@ I vari blocchi sono:
     - La cartella **assets** contiene un database template: template.db
 
     Quando si crea un nuovo database, questo viene copiato dal template. Se il template per qualche motivo è corrotto
-    o non valido, lo si ricrea usando lo script.
+    o non valido, viene ricreato usando lo script.
     
   3. **ritmo_db_core**
 
